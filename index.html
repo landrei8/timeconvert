@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>World Time · City Clock</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0e0e12;
@@ -17,6 +17,25 @@
     --muted: #6868a0;
     --cell-w: 36px;
   }
+  body.light {
+    --bg: #f4f4f0;
+    --surface: #ffffff;
+    --surface2: #eaeae4;
+    --border: #d4d4c8;
+    --accent: #5a8a00;
+    --accent2: #c0002a;
+    --text: #1a1a1a;
+    --muted: #7a7a6a;
+  }
+  *, *::before, *::after { transition: background 0.25s, border-color 0.25s, color 0.2s, box-shadow 0.25s; }
+
+  /* Light mode specific overrides */
+  body.light .hour-cell.work { background: rgba(90,138,0,0.1); }
+  body.light .hour-cell.sleep { background: rgba(192,0,42,0.06); }
+  body.light .sel-overlay { background: rgba(90,138,0,0.15); border-color: #5a8a00; }
+  body.light .drag-handle::after { background: #5a8a00; box-shadow: 0 0 6px rgba(90,138,0,0.5); }
+  body.light .hour-cell.half .hour-num { color: #a0a090; }
+  body.light header { box-shadow: 0 1px 0 var(--border); }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--bg);
@@ -31,7 +50,7 @@
     border-bottom: 1px solid var(--border);
   }
   header h1 {
-    font-family: 'Fraunces', serif; font-size: 1.4rem;
+    font-family: 'Open Sans', sans-serif; font-weight: 300; font-size: 1.4rem;
     font-weight: 300; color: var(--accent); letter-spacing: -0.02em;
   }
   header span { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
@@ -129,7 +148,7 @@
     gap: 0.1rem; position: relative; min-height: 82px;
   }
   .city-name-big {
-    font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 700;
+    font-family: 'Open Sans', sans-serif; font-weight: 600; font-size: 1rem;
     display: flex; align-items: center; gap: 0.35rem;
   }
   .tz-tag {
@@ -201,7 +220,7 @@
   .drag-handle.right { right: -6px; }
 
   .empty-state { text-align: center; padding: 3rem 2rem; color: var(--muted); font-size: 0.78rem; }
-  .empty-state .big { font-family: 'Fraunces', serif; font-size: 2.5rem; color: var(--border); margin-bottom: 0.5rem; }
+  .empty-state .big { font-family: 'Open Sans', sans-serif; font-weight: 300; font-size: 2.5rem; color: var(--border); margin-bottom: 0.5rem; }
 
   .nav-arrows {
     display: flex;
@@ -233,6 +252,24 @@
     width: 6px; height: 6px; border-radius: 50%;
     background: var(--accent); display: inline-block;
   }
+  /* Theme toggle button */
+  .theme-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.22rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 0.4rem;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-btn .theme-icon { font-size: 0.85rem; }
 </style>
 </head>
 <body>
@@ -243,6 +280,7 @@
   <nav class="site-nav">
     <a href="changelog.html">Changelog</a>
     <a href="cookies.html">Cookies</a>
+    <button class="theme-btn" id="themeToggle"><span class="theme-icon">☀️</span> Light</button>
   </nav>
   <div class="date-nav" id="dateNav"></div>
 </header>
@@ -1028,6 +1066,26 @@ setInterval(() => {
 }, 1000);
 
 // ============================================================
+// THEME TOGGLE
+// ============================================================
+function applyTheme(mode) {
+  const isLight = mode === 'light';
+  document.body.classList.toggle('light', isLight);
+  const btn = document.getElementById('themeToggle');
+  if (btn) {
+    btn.innerHTML = isLight
+      ? '<span class="theme-icon">🌙</span> Dark'
+      : '<span class="theme-icon">☀️</span> Light';
+  }
+  try { localStorage.setItem('worldtime_theme', mode); } catch(e) {}
+}
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const isLight = document.body.classList.contains('light');
+  applyTheme(isLight ? 'dark' : 'light');
+});
+
+// ============================================================
 // SAVE / LOAD PREFERENCES (localStorage)
 // ============================================================
 function savePrefs() {
@@ -1063,6 +1121,11 @@ function loadPrefs() {
 // INIT
 // ============================================================
 buildDateNav();
+// Load saved theme
+try {
+  const savedTheme = localStorage.getItem('worldtime_theme');
+  if (savedTheme) applyTheme(savedTheme);
+} catch(e) {}
 const hadSaved = loadPrefs();
 if (!hadSaved) {
   cities = [
@@ -1076,6 +1139,6 @@ if (!hadSaved) {
 render();
 </script>
 <div class="toast" id="toast">Preferences saved</div>
-<div class="build-tag">build v1.4 (10:54)</div>
+<div class="build-tag">build v1.5 - (11:13)</div>
 </body>
 </html>

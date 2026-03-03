@@ -210,17 +210,22 @@ header .sub { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.15em; t
   <div class="page-label">Release History</div>
   <h1 class="page-title">Changelog</h1>
   <p class="page-subtitle">All notable changes to World Time · City Clock, most recent first.</p>
-
-  <div class="edit-hint">
-    <strong>How to add a new entry:</strong> Open this file in a text editor, copy an existing <code>&lt;div class="release"&gt;</code> block, paste it at the top of the <code>&lt;div class="timeline"&gt;</code>, and update the version, date, and change items. Set <code>class="release latest"</code> on the newest entry only.
-  </div>
-
   <div class="timeline">
 
     <!-- ===================== ADD NEW RELEASES AT THE TOP ===================== -->
 
-
-    <div class="release latest">
+  <div class="release latest">
+      <div class="release-header">
+        <span class="version">v1.6</span>
+        <span class="release-date">March 2026</span>
+        <span class="release-tag major">Major</span>
+      </div>
+      <div class="release-desc"><p>Modify home location</p></div>
+      <ul class="changes">
+        <li class="change"><span class="change-type improve">improve</span><span class="change-text"><strong>Manage Home</strong> — you can now modify & set now home timezone / location.</span></li>
+    </div>
+    
+    <div class="release">
       <div class="release-header">
         <span class="version">v1.5</span>
         <span class="release-date">March 2026</span>
@@ -230,10 +235,6 @@ header .sub { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.15em; t
       <ul class="changes">
         <li class="change"><span class="change-type new">new</span><span class="change-text"><strong>Dark & white mode </strong> — app is now visibile in white mode as well. </span></li>
         <li class="change"><span class="change-type new">new</span><span class="change-text"><strong>Fonts</strong> — page is easier to read </span></li>
-        <li class="change"><span class="change-type improve">improve</span><span class="change-text"><strong>Business hours highlight</strong> — green highlight now runs precisely from 9:00am to 6:00pm (excluding 6:30pm slot).</span></li>
-        <li class="change"><span class="change-type improve">improve</span><span class="change-text"><strong>Toast notification</strong> — small "Preferences saved" confirmation appears when city list is updated.</span></li>
-        <li class="change"><span class="change-type improve">improve</span><span class="change-text"><strong>Site navigation</strong> — header now includes links between App, Changelog, and Cookies pages.</span></li>
-      </ul>
     </div>
 
     <div class="release">

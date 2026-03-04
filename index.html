@@ -329,7 +329,7 @@
     </div>
   </div>
   <div class="clocks-area" id="clocksArea">
-    <div class="empty-state"><div class="big">+</div>Search for a city above to get started</div>
+    <div class="empty-state"><div class="big">+</div>Search for a city above to get started 😎</div>
   </div>
 </div>
 
@@ -624,10 +624,10 @@ function render() {
   const scrollTo = Math.max(0, (nowSlot - Math.floor(visibleSlots / 2))) * CELL_W;
   document.querySelectorAll('.timeline-wrap').forEach(w => { w.scrollLeft = scrollTo; });
 
-  // Only first row has the drag logic
-  const firstTL = document.getElementById('tl_0');
-  const firstWrap = document.getElementById('tlwrap_0');
-  if (firstTL && firstWrap) setupDrag(firstTL, firstWrap);
+  // Attach drag to every row
+  document.querySelectorAll('.timeline').forEach(tl => {
+    setupDrag(tl);
+  });
 }
 
 function buildRow(city, idx) {
@@ -718,17 +718,15 @@ function buildRow(city, idx) {
   if (selStart === null) overlay.style.display = 'none';
   else positionOverlay(overlay);
 
-  // Drag handles on first row only (pointer-events on overlay itself off except handles)
-  if (idx === 0) {
-    const lh = document.createElement('div');
-    lh.className = 'drag-handle left';
-    lh.id = 'dh-left';
-    overlay.appendChild(lh);
-    const rh = document.createElement('div');
-    rh.className = 'drag-handle right';
-    rh.id = 'dh-right';
-    overlay.appendChild(rh);
-  }
+  // Drag handles on every row
+  const lh = document.createElement('div');
+  lh.className = 'drag-handle left';
+  lh.id = 'dh-left-' + idx;
+  overlay.appendChild(lh);
+  const rh = document.createElement('div');
+  rh.className = 'drag-handle right';
+  rh.id = 'dh-right-' + idx;
+  overlay.appendChild(rh);
 
   tl.appendChild(overlay);
 
@@ -846,19 +844,23 @@ let dragStartClientX = 0;
 let dragSavedStart = null;
 let dragSavedEnd = null;
 
-function setupDrag(tl, tlWrap) {
+let activeDragWrap = null; // which timeline-wrap the drag started on
+
+function setupDrag(tl) {
   tl.addEventListener('mousedown', onDragStart);
   tl.addEventListener('touchstart', onTouchStart, { passive: false });
 }
 
 function onDragStart(e) {
   if (e.button !== 0) return;
+  activeDragWrap = e.currentTarget.closest('.timeline-wrap');
   determineDragMode(e.clientX);
   isDragging = true;
   e.preventDefault();
 }
 
 function onTouchStart(e) {
+  activeDragWrap = e.currentTarget.closest('.timeline-wrap');
   determineDragMode(e.touches[0].clientX);
   isDragging = true;
   e.preventDefault();
@@ -869,21 +871,25 @@ function determineDragMode(clientX) {
   dragSavedStart = selStart !== null ? Math.min(selStart, selEnd) : null;
   dragSavedEnd = selStart !== null ? Math.max(selStart, selEnd) : null;
 
-  const lh = document.getElementById('dh-left');
-  const rh = document.getElementById('dh-right');
-  const overlay = document.getElementById('overlay_0');
+  // Check handles/overlay on the active drag wrap
+  if (activeDragWrap) {
+    const wrapIdx = activeDragWrap.id.replace('tlwrap_', '');
+    const lh = document.getElementById('dh-left-' + wrapIdx);
+    const rh = document.getElementById('dh-right-' + wrapIdx);
+    const overlay = document.getElementById('overlay_' + wrapIdx);
 
-  if (lh) {
-    const lr = lh.getBoundingClientRect();
-    if (clientX >= lr.left - 8 && clientX <= lr.right + 8) { dragMode = 'left'; return; }
-  }
-  if (rh) {
-    const rr = rh.getBoundingClientRect();
-    if (clientX >= rr.left - 8 && clientX <= rr.right + 8) { dragMode = 'right'; return; }
-  }
-  if (overlay && selStart !== null) {
-    const or = overlay.getBoundingClientRect();
-    if (clientX >= or.left && clientX <= or.right) { dragMode = 'move'; return; }
+    if (lh) {
+      const lr = lh.getBoundingClientRect();
+      if (clientX >= lr.left - 8 && clientX <= lr.right + 8) { dragMode = 'left'; return; }
+    }
+    if (rh) {
+      const rr = rh.getBoundingClientRect();
+      if (clientX >= rr.left - 8 && clientX <= rr.right + 8) { dragMode = 'right'; return; }
+    }
+    if (overlay && selStart !== null) {
+      const or = overlay.getBoundingClientRect();
+      if (clientX >= or.left && clientX <= or.right) { dragMode = 'move'; return; }
+    }
   }
   dragMode = 'new';
   const slot = clientXToSlot(clientX);
@@ -929,7 +935,8 @@ document.addEventListener('mouseup', () => { isDragging = false; dragMode = null
 document.addEventListener('touchend', () => { isDragging = false; dragMode = null; });
 
 function clientXToSlot(clientX) {
-  const wrap = document.getElementById('tlwrap_0');
+  // Use the wrap that the drag started on for accurate slot calculation
+  const wrap = activeDragWrap || document.getElementById('tlwrap_0');
   if (!wrap) return 0;
   const rect = wrap.getBoundingClientRect();
   const x = clientX - rect.left + wrap.scrollLeft;

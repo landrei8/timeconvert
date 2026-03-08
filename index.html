@@ -69,8 +69,8 @@
   .date-btn.active { color: var(--accent); border-color: var(--border); }
 
   .main { display: flex; flex-direction: column; }
-  .toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 2rem 0.6rem 1rem; border-bottom: 1px solid var(--border); background: var(--surface); }
-  .search-wrap { position: relative; flex: 1; max-width: 320px; }
+  .toolbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0.75rem; padding: 0.6rem 1.2rem; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .search-wrap { position: relative; max-width: 320px; }
   .search-input { background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.72rem; padding: 0.35rem 0.75rem; border-radius: 4px; width: 100%; outline: none; }
   .search-input:focus { border-color: var(--accent); }
   .search-input::placeholder { color: var(--muted); }
@@ -82,12 +82,13 @@
   .badge { font-size: 0.52rem; padding: 0.06rem 0.35rem; border-radius: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
   .badge.city { background: rgba(200,240,78,0.1); color: var(--accent); border: 1px solid rgba(200,240,78,0.2); }
   .badge.tz { background: rgba(160,130,240,0.1); color: #a082f0; border: 1px solid rgba(160,130,240,0.2); }
-  .nav-wrap { display: flex; gap: 0.3rem; }
+  .nav-wrap { display: flex; gap: 0.3rem; justify-content: center; }
   .nav-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.6rem; padding: 0.28rem 0.55rem; border-radius: 4px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 0.25rem; }
   .nav-btn:hover { color: var(--accent); border-color: var(--accent); }
   .nav-btn:active { transform: scale(0.96); }
   .nav-btn .now-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
-  .sel-info { font-size: 0.65rem; color: var(--muted); margin-left: auto; }
+  .sel-info { font-size: 0.65rem; color: var(--muted); }
+  .toolbar-right { display: flex; align-items: center; gap: 0.75rem; justify-content: flex-end; }
   .sel-info strong { color: var(--accent); }
   .legend { display: flex; gap: 1rem; align-items: center; }
   .leg { display: flex; align-items: center; gap: 0.35rem; font-size: 0.6rem; color: var(--muted); }
@@ -231,19 +232,21 @@
       <button class="nav-btn" id="navR"  title="Fwd 1h">1h <span class="arrow">&#8250;</span></button>
       <button class="nav-btn" id="navRR" title="Fwd 2h">2h <span class="arrow">&#187;</span></button>
     </div>
-    <div class="legend">
-      <div class="leg"><div class="leg-dot sel"></div>Selected</div>
-    </div>
-    <div class="presets-wrap" id="presetsWrap">
-      <button class="presets-btn" id="presetsBtn">&#9776; Presets</button>
-      <div class="presets-panel" id="presetsPanel">
-        <div class="presets-panel-title">Saved Presets</div>
-        <div id="presetsList"></div>
-        <div class="presets-divider"></div>
-        <div style="font-size:0.6rem;color:var(--muted);padding:0 0.2rem">Click a preset to load &middot; Save overwrites it</div>
+    <div class="toolbar-right">
+      <div class="sel-info" id="selInfo"></div>
+      <div class="legend">
+        <div class="leg"><div class="leg-dot sel"></div>Selected</div>
+      </div>
+      <div class="presets-wrap" id="presetsWrap">
+        <button class="presets-btn" id="presetsBtn">&#9776; Presets</button>
+        <div class="presets-panel" id="presetsPanel">
+          <div class="presets-panel-title">Saved Presets</div>
+          <div id="presetsList"></div>
+          <div class="presets-divider"></div>
+          <div style="font-size:0.6rem;color:var(--muted);padding:0 0.2rem">Click a preset to load &middot; Save overwrites it</div>
+        </div>
       </div>
     </div>
-    <div class="sel-info" id="selInfo"></div>
   </div>
   <div class="clocks-area" id="clocksArea"></div>
 </div>
@@ -273,6 +276,32 @@ let slotUTCMs = [];
 // ============================================================
 // CITIES DATABASE
 // ============================================================
+// Country flag emoji map
+const COUNTRY_FLAGS = {
+  'United States': '🇺🇸', 'Canada': '🇨🇦', 'United Kingdom': '🇬🇧',
+  'France': '🇫🇷', 'Germany': '🇩🇪', 'Spain': '🇪🇸', 'Italy': '🇮🇹',
+  'Netherlands': '🇳🇱', 'Belgium': '🇧🇪', 'Austria': '🇦🇹', 'Switzerland': '🇨🇭',
+  'Sweden': '🇸🇪', 'Norway': '🇳🇴', 'Denmark': '🇩🇰', 'Finland': '🇫🇮',
+  'Poland': '🇵🇱', 'Czech Republic': '🇨🇿', 'Hungary': '🇭🇺',
+  'Romania': '🇷🇴', 'Bulgaria': '🇧🇬', 'Greece': '🇬🇷', 'Turkey': '🇹🇷',
+  'Russia': '🇷🇺', 'Ukraine': '🇺🇦', 'Portugal': '🇵🇹',
+  'UAE': '🇦🇪', 'Saudi Arabia': '🇸🇦', 'Iraq': '🇮🇶', 'Iran': '🇮🇷',
+  'Jordan': '🇯🇴', 'Israel': '🇮🇱',
+  'India': '🇮🇳', 'Pakistan': '🇵🇰', 'Bangladesh': '🇧🇩',
+  'Sri Lanka': '🇱🇰', 'Nepal': '🇳🇵',
+  'Singapore': '🇸🇬', 'China': '🇨🇳', 'Japan': '🇯🇵', 'South Korea': '🇰🇷',
+  'Taiwan': '🇹🇼', 'Thailand': '🇹🇭', 'Indonesia': '🇮🇩', 'Malaysia': '🇲🇾',
+  'Egypt': '🇪🇬', 'Nigeria': '🇳🇬', 'Kenya': '🇰🇪', 'South Africa': '🇿🇦',
+  'Morocco': '🇲🇦', 'Ghana': '🇬🇭', 'Ethiopia': '🇪🇹', 'Tanzania': '🇹🇿',
+  'Senegal': '🇸🇳', 'Sudan': '🇸🇩', 'Tunisia': '🇹🇳', 'Algeria': '🇩🇿',
+  'Libya': '🇱🇾', 'Uganda': '🇺🇬', 'Zambia': '🇿🇲', 'Zimbabwe': '🇿🇼',
+  'Mozambique': '🇲🇿', 'Angola': '🇦🇴', 'Ivory Coast': '🇨🇮', 'Cameroon': '🇨🇲',
+  'Mauritius': '🇲🇺', 'Australia': '🇦🇺', 'New Zealand': '🇳🇿',
+  'Brazil': '🇧🇷', 'Argentina': '🇦🇷', 'Chile': '🇨🇱', 'Peru': '🇵🇪',
+  'Colombia': '🇨🇴', 'Mexico': '🇲🇽',
+};
+function getFlag(country) { return COUNTRY_FLAGS[country] || '🌐'; }
+
 const CITIES = [
   // United States
   {name:'New York',country:'United States',tz:'America/New_York',abbr:'EST'},
@@ -644,7 +673,7 @@ function buildRow(city, idx) {
   // Country
   const countryDiv = document.createElement('div');
   countryDiv.className = 'country-label';
-  countryDiv.textContent = city.country;
+  countryDiv.textContent = getFlag(city.country) + ' ' + city.country;
   info.appendChild(countryDiv);
 
   // Clock

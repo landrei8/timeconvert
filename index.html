@@ -127,9 +127,9 @@
   .leg-dot { width: 8px; height: 8px; border-radius: 2px; }
   .leg-dot.sel { background: rgba(200,240,78,0.2); border: 1px solid var(--accent); }
 
-  .clocks-area { flex: 1; overflow-y: auto; }
-  .clock-row { display: flex; border-bottom: 1px solid var(--border); }
-  .city-info { width: 195px; min-width: 195px; padding: 0.75rem 0.85rem; border-right: 1px solid var(--border); position: relative; background: var(--surface); }
+  .clocks-area { flex: 1; overflow-y: auto; border-bottom: 1px solid var(--border); }
+  .clock-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); }
+  .city-info { width: 195px; min-width: 195px; padding: 0.75rem 0.85rem; border-right: 1px solid var(--border); position: relative; background: var(--surface); display: flex; flex-direction: column; }
   .offset-badge { font-size: 0.58rem; padding: 0.08rem 0.4rem; border-radius: 3px; letter-spacing: 0.05em; display: inline-block; margin-bottom: 0.3rem; }
   .offset-badge.neg { background: rgba(240,78,122,0.12); color: var(--accent2); border: 1px solid rgba(240,78,122,0.2); }
   .offset-badge.pos { background: rgba(200,240,78,0.1); color: var(--accent); border: 1px solid rgba(200,240,78,0.2); }
@@ -152,8 +152,8 @@
 
   .timeline-wrap { flex: 1; overflow-x: auto; overflow-y: hidden; position: relative; scrollbar-width: none; -ms-overflow-style: none; }
   .timeline-wrap::-webkit-scrollbar { display: none; }
-  .timeline { display: flex; position: relative; user-select: none; }
-  .hour-cell { width: var(--cell-w); min-width: var(--cell-w); height: 72px; border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: crosshair; position: relative; background: var(--bg); flex-shrink: 0; }
+  .timeline { display: flex; position: relative; user-select: none; min-height: 100%; }
+  .hour-cell { width: var(--cell-w); min-width: var(--cell-w); min-height: 72px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: crosshair; position: relative; background: var(--bg); flex-shrink: 0; align-self: stretch; }
   .hour-num { font-size: 0.72rem; color: var(--text); line-height: 1; }
   .hour-cell.half .hour-num { font-size: 0.6rem; color: var(--muted); }
   .ampm-tiny { font-size: 0.5rem; color: var(--muted); margin-top: 0.1rem; }
@@ -659,8 +659,18 @@ function buildRow(city, idx) {
   homeBtn.appendChild(homeTip);
   homeBtn.addEventListener('click', function(e) {
     e.stopPropagation(); e.preventDefault();
-    homeIdx = (homeIdx === idx) ? -1 : idx;
-    savePrefs(); render();
+    if (homeIdx === idx) {
+      // Unset home
+      homeIdx = -1;
+      savePrefs(); render();
+    } else {
+      // Set as home: move this city to index 0
+      const city = cities.splice(idx, 1)[0];
+      cities.unshift(city);
+      homeIdx = 0;
+      savePrefs(); render();
+      showToast('Home updated: ' + city.name);
+    }
   });
   info.appendChild(homeBtn);
 

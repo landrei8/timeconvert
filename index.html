@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-VP6M8CMPYV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-VP6M8CMPYV');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>World Time · Free Timezone Converter by City</title>
@@ -105,7 +96,7 @@
   .presets-wrap { position: relative; }
   .presets-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 0.22rem 0.65rem; border-radius: 4px; cursor: pointer; font-family: "DM Mono", monospace; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 0.35rem; }
   .presets-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .presets-panel { position: absolute; top: calc(100% + 6px); left: 0; width: 260px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; z-index: 300; display: none; padding: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .presets-panel { position: fixed; width: 260px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; z-index: 1000; display: none; padding: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
   .presets-panel.open { display: block; }
   .presets-panel-title { font-size: 0.58rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem; padding: 0 0.2rem; }
   .preset-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.2rem; border-radius: 4px; transition: background 0.1s; }
@@ -150,10 +141,8 @@
   .clock-row:hover .remove-btn { opacity: 1; }
   .remove-btn:hover { color: var(--accent2); }
 
-  .timeline-wrap { flex: 1; overflow-x: auto; overflow-y: hidden; position: relative; }
-  .timeline-wrap::-webkit-scrollbar { height: 4px; }
-  .timeline-wrap::-webkit-scrollbar-track { background: var(--bg); }
-  .timeline-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .timeline-wrap { flex: 1; overflow-x: auto; overflow-y: hidden; position: relative; scrollbar-width: none; -ms-overflow-style: none; }
+  .timeline-wrap::-webkit-scrollbar { display: none; }
   .timeline { display: flex; position: relative; user-select: none; }
   .hour-cell { width: var(--cell-w); min-width: var(--cell-w); height: 72px; border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: crosshair; position: relative; background: var(--bg); flex-shrink: 0; }
   .hour-num { font-size: 0.72rem; color: var(--text); line-height: 1; }
@@ -1335,7 +1324,24 @@ document.getElementById('presetsBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   const panel = document.getElementById('presetsPanel');
   const isOpen = panel.classList.contains('open');
-  if (!isOpen) renderPresetsList();
+  if (!isOpen) {
+    renderPresetsList();
+    // Position panel using fixed coords so it never overflows viewport
+    const btn = document.getElementById('presetsBtn');
+    const r = btn.getBoundingClientRect();
+    const panelW = 260;
+    const margin = 8;
+    // Align right edge of panel with right edge of button, clamp to viewport
+    let left = r.right - panelW;
+    if (left < margin) left = margin;
+    if (left + panelW > window.innerWidth - margin) left = window.innerWidth - panelW - margin;
+    // Open below button, but if not enough room open above
+    const panelH = 280; // approx
+    let top = r.bottom + 6;
+    if (top + panelH > window.innerHeight - margin) top = r.top - panelH - 6;
+    panel.style.left = left + 'px';
+    panel.style.top  = top  + 'px';
+  }
   panel.classList.toggle('open');
 });
 document.addEventListener('click', (e) => {

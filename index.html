@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-VP6M8CMPYV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-VP6M8CMPYV');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>World Time · Free Timezone Converter by City</title>
@@ -254,6 +245,15 @@
         </div>
       </div>
     </div>
+  </div>
+  <!-- Floating selection summary -->
+  <div class="sel-summary" id="selSummary">
+    <div class="sel-summary-header">
+      <span>Selected range</span>
+      <span class="sel-summary-dur" id="selSummaryDur"></span>
+      <button class="sel-summary-close" id="selSummaryClose" title="Dismiss">✕</button>
+    </div>
+    <div id="selSummaryRows"></div>
   </div>
   <div class="clocks-area" id="clocksArea"></div>
 </div>
@@ -855,14 +855,76 @@ function updateRangeLabelEl(el, idx) {
 function updateSelInfo() {
   const el = document.getElementById('selInfo');
   if (!el) return;
-  if (selStart === null) { el.innerHTML = ''; return; }
+  if (selStart === null) { el.innerHTML = ''; updateSelSummary(); return; }
   const s = Math.min(selStart, selEnd);
   const e = Math.max(selStart, selEnd);
   const mins = (e - s + 1) * SLOT_MINS;
   const h = Math.floor(mins / 60), m = mins % 60;
   const dur = (h > 0 ? h + 'h ' : '') + (m > 0 ? m + 'm' : '');
   el.innerHTML = 'Selected: <strong>' + dur + '</strong>';
+  updateSelSummary(s, e, dur);
 }
+
+function updateSelSummary(s, e, dur) {
+  const panel = document.getElementById('selSummary');
+  const rows  = document.getElementById('selSummaryRows');
+  const durEl = document.getElementById('selSummaryDur');
+  if (!panel) return;
+  if (s === undefined) { panel.classList.remove('visible'); return; }
+
+  const startMs = slotUTCMs[s];
+  const endMs   = slotUTCMs[Math.min(e + 1, SLOTS - 1)];
+
+  durEl.textContent = dur;
+  rows.innerHTML = '';
+
+  cities.forEach((city, idx) => {
+    const fmtTime = new Intl.DateTimeFormat('en-US', {
+      timeZone: city.tz, hour: 'numeric', minute: '2-digit', hour12: true
+    });
+    const fmtEnd = new Intl.DateTimeFormat('en-US', {
+      timeZone: city.tz, hour: 'numeric', minute: '2-digit', hour12: true
+    });
+    const fmtDay = new Intl.DateTimeFormat('en-US', {
+      timeZone: city.tz, weekday: 'short', month: 'short', day: 'numeric'
+    });
+
+    const startStr = fmtTime.format(new Date(startMs));
+    const endStr   = fmtEnd.format(new Date(endMs));
+    const dayStr   = fmtDay.format(new Date(startMs));
+
+    const row = document.createElement('div');
+    row.className = 'sel-summary-row' + (idx === homeIdx ? ' sel-summary-home' : '');
+
+    const cityEl = document.createElement('div');
+    cityEl.className = 'sel-summary-city';
+    cityEl.title = city.name;
+    cityEl.textContent = (idx === homeIdx ? '⌂ ' : '') + city.name;
+
+    const timeEl = document.createElement('div');
+    timeEl.className = 'sel-summary-time';
+    timeEl.textContent = startStr + ' – ' + endStr;
+
+    const dayEl = document.createElement('div');
+    dayEl.style.cssText = 'font-size:0.58rem;color:var(--muted);text-align:right;white-space:nowrap';
+    dayEl.textContent = dayStr;
+
+    row.appendChild(cityEl);
+    const right = document.createElement('div');
+    right.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:0.05rem';
+    right.appendChild(timeEl);
+    right.appendChild(dayEl);
+    row.appendChild(right);
+    rows.appendChild(row);
+  });
+
+  panel.classList.add('visible');
+}
+
+// Close button
+document.getElementById('selSummaryClose').addEventListener('click', () => {
+  document.getElementById('selSummary').classList.remove('visible');
+});
 
 // ============================================================
 // DRAG LOGIC

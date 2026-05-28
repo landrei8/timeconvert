@@ -87,9 +87,7 @@
   .nav-btn:hover { color: var(--accent); border-color: var(--accent); }
   .nav-btn:active { transform: scale(0.96); }
   .nav-btn .now-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
-  .sel-info { font-size: 0.65rem; color: var(--muted); }
   .toolbar-right { display: flex; align-items: center; gap: 0.75rem; justify-content: flex-end; }
-  .sel-info strong { color: var(--accent); }
   .legend { display: flex; gap: 1rem; align-items: center; }
   .leg { display: flex; align-items: center; gap: 0.35rem; font-size: 0.6rem; color: var(--muted); }
   /* Presets */
@@ -117,6 +115,75 @@
   .presets-divider { height: 1px; background: var(--border); margin: 0.4rem 0; }
   .leg-dot { width: 8px; height: 8px; border-radius: 2px; }
   .leg-dot.sel { background: rgba(200,240,78,0.2); border: 1px solid var(--accent); }
+
+  /* ── Selection summary — inline toolbar dropdown ── */
+  .sel-summary {
+    position: relative; display: none;
+  }
+  .sel-summary.visible { display: block; }
+  .sel-summary-header {
+    display: flex; align-items: center; gap: 0.45rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0.22rem 0.55rem;
+    cursor: pointer; white-space: nowrap;
+  }
+  .sel-summary-header:hover { border-color: var(--accent); }
+  .sel-summary-label {
+    font-size: 0.58rem; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+  .sel-summary-dur {
+    font-size: 0.62rem; font-family: 'DM Mono', monospace;
+    color: var(--accent); letter-spacing: 0.04em;
+    background: rgba(200,240,78,0.1); border: 1px solid rgba(200,240,78,0.25);
+    border-radius: 3px; padding: 0.04rem 0.35rem;
+  }
+  body.light .sel-summary-dur {
+    background: rgba(90,138,0,0.08); border-color: rgba(90,138,0,0.25);
+  }
+  .sel-summary-close {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 0.65rem; padding: 0; line-height: 1;
+    transition: color 0.12s; flex-shrink: 0;
+  }
+  .sel-summary-close:hover { color: var(--accent2); }
+  /* Dropdown rows panel */
+  .sel-summary-rows-panel {
+    display: none; position: absolute; top: calc(100% + 6px); right: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.4rem 0.7rem;
+    min-width: 240px; z-index: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    animation: summaryIn 0.14s ease;
+  }
+  .sel-summary.open .sel-summary-rows-panel { display: block; }
+  @keyframes summaryIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .sel-summary-row {
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: center; gap: 0.5rem;
+    padding: 0.28rem 0; border-bottom: 1px solid var(--border);
+  }
+  .sel-summary-row:last-child { border-bottom: none; }
+  .sel-summary-city {
+    font-size: 0.6rem; color: var(--muted);
+    font-family: 'DM Mono', monospace; letter-spacing: 0.02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sel-summary-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.04rem; }
+  .sel-summary-time {
+    font-size: 0.66rem; color: var(--text); font-weight: 600;
+    font-family: 'DM Mono', monospace; white-space: nowrap;
+  }
+  .sel-summary-day {
+    font-size: 0.54rem; color: var(--muted);
+    font-family: 'DM Mono', monospace; white-space: nowrap;
+  }
+  .sel-summary-home .sel-summary-city { color: var(--accent); }
+  .sel-summary-home .sel-summary-time { color: var(--accent); }
 
   .clocks-area { flex: 1; overflow-y: auto; border-bottom: 1px solid var(--border); }
   .clock-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); }
@@ -231,9 +298,16 @@
       <button class="nav-btn" id="navRR" title="Fwd 2h">2h <span class="arrow">&#187;</span></button>
     </div>
     <div class="toolbar-right">
-      <div class="sel-info" id="selInfo"></div>
-      <div class="legend">
-        <div class="leg"><div class="leg-dot sel"></div>Selected</div>
+      <!-- Inline selection summary -->
+      <div class="sel-summary" id="selSummary">
+        <div class="sel-summary-header" id="selSummaryToggle">
+          <span class="sel-summary-label">Selection</span>
+          <span class="sel-summary-dur" id="selSummaryDur"></span>
+          <button class="sel-summary-close" id="selSummaryClose" title="Clear">✕</button>
+        </div>
+        <div class="sel-summary-rows-panel">
+          <div id="selSummaryRows"></div>
+        </div>
       </div>
       <div class="presets-wrap" id="presetsWrap">
         <button class="presets-btn" id="presetsBtn">&#9776; Presets</button>
@@ -246,15 +320,7 @@
       </div>
     </div>
   </div>
-  <!-- Floating selection summary -->
-  <div class="sel-summary" id="selSummary">
-    <div class="sel-summary-header">
-      <span>Selected range</span>
-      <span class="sel-summary-dur" id="selSummaryDur"></span>
-      <button class="sel-summary-close" id="selSummaryClose" title="Dismiss">✕</button>
-    </div>
-    <div id="selSummaryRows"></div>
-  </div>
+
   <div class="clocks-area" id="clocksArea"></div>
 </div>
 
@@ -853,19 +919,18 @@ function updateRangeLabelEl(el, idx) {
 }
 
 function updateSelInfo() {
-  const el = document.getElementById('selInfo');
-  if (!el) return;
-  if (selStart === null) { el.innerHTML = ''; updateSelSummary(); return; }
+  if (selStart === null) { updateSelSummary(); return; }
   const s = Math.min(selStart, selEnd);
   const e = Math.max(selStart, selEnd);
-  const mins = (e - s + 1) * SLOT_MINS;
+  const isSingle = (s === e);
+  const mins = (e - s) * SLOT_MINS;
   const h = Math.floor(mins / 60), m = mins % 60;
-  const dur = (h > 0 ? h + 'h ' : '') + (m > 0 ? m + 'm' : '');
-  el.innerHTML = 'Selected: <strong>' + dur + '</strong>';
-  updateSelSummary(s, e, dur);
+  const dur = isSingle ? null : (h > 0 ? h + 'h ' : '') + (m > 0 ? m + 'm' : '');
+
+  updateSelSummary(s, e, dur, isSingle);
 }
 
-function updateSelSummary(s, e, dur) {
+function updateSelSummary(s, e, dur, isSingle) {
   const panel = document.getElementById('selSummary');
   const rows  = document.getElementById('selSummaryRows');
   const durEl = document.getElementById('selSummaryDur');
@@ -873,9 +938,10 @@ function updateSelSummary(s, e, dur) {
   if (s === undefined) { panel.classList.remove('visible'); return; }
 
   const startMs = slotUTCMs[s];
-  const endMs   = slotUTCMs[Math.min(e + 1, SLOTS - 1)];
+  const endMs   = isSingle ? startMs : slotUTCMs[Math.min(e + 1, SLOTS - 1)];
 
-  durEl.textContent = dur;
+  durEl.textContent = dur || '';
+  durEl.style.display = dur ? '' : 'none';
   rows.innerHTML = '';
 
   cities.forEach((city, idx) => {
@@ -901,19 +967,20 @@ function updateSelSummary(s, e, dur) {
     cityEl.title = city.name;
     cityEl.textContent = (idx === homeIdx ? '⌂ ' : '') + city.name;
 
+    const right = document.createElement('div');
+    right.className = 'sel-summary-right';
+
     const timeEl = document.createElement('div');
     timeEl.className = 'sel-summary-time';
-    timeEl.textContent = startStr + ' – ' + endStr;
+    timeEl.textContent = isSingle ? startStr : (startStr + '–' + endStr);
 
     const dayEl = document.createElement('div');
-    dayEl.style.cssText = 'font-size:0.58rem;color:var(--muted);text-align:right;white-space:nowrap';
+    dayEl.className = 'sel-summary-day';
     dayEl.textContent = dayStr;
 
-    row.appendChild(cityEl);
-    const right = document.createElement('div');
-    right.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:0.05rem';
     right.appendChild(timeEl);
     right.appendChild(dayEl);
+    row.appendChild(cityEl);
     row.appendChild(right);
     rows.appendChild(row);
   });
@@ -922,8 +989,18 @@ function updateSelSummary(s, e, dur) {
 }
 
 // Close button
-document.getElementById('selSummaryClose').addEventListener('click', () => {
-  document.getElementById('selSummary').classList.remove('visible');
+document.getElementById('selSummaryToggle').addEventListener('click', (e) => {
+  if (e.target.id === 'selSummaryClose') {
+    // Clear selection
+    selStart = null; selEnd = null;
+    document.querySelectorAll('.sel-overlay').forEach(o => { o.style.display = 'none'; });
+    updateSelInfo();
+  } else {
+    document.getElementById('selSummary').classList.toggle('open');
+  }
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#selSummary')) document.getElementById('selSummary').classList.remove('open');
 });
 
 // ============================================================

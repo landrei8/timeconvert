@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TIMEZONE - Real-time World Clock Converter</title>
+  <style>
+    /* ============================================
+       FONT IMPORT
+    ============================================ */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400
+    ;500;600;700;800&display=swap');
+
+    /* ============================================
+       CSS VARIABLES
+    ============================================ */
+    :root {
+      --color-darkest: #0a0a1a;
+      --color-navy: #1a0a2e;
+      --color-indigo: #0d1b3e;
+      --color-blue: #00d4ff;
+      --color-violet: #7c3aed;
+      --color-white: #e2e8f0;
+      --color-gray: #64748b;
+      --color-glass-bg: rgba(255, 255, 255, 0.05);
+      --color-glass-border: rgba(255, 255, 255, 0.1);
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-error: #ef4444;
+    }
+
+    /* ============================================
+       RESET & BASE
+    ============================================ */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, var(--color-darkest) 0%, var(--color-navy) 50%, var(--color-indigo) 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      min-height: 100vh;
+      color: var(--color-white);
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* ============================================
+       PARTICLE CANVAS
+    ============================================ */
+    #particleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ============================================
+       MAIN CONTAINER
+    ============================================ */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 30px;
+      animation: pageLoad 1s ease-out;
+    }
+
+    @keyframes pageLoad {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ============================================
+       HEADER SECTION
+    ============================================ */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      animation: pageLoad 1s ease-out 0.1s backwards;
+    }
+
+    .header-left {
+      flex: 1;
+    }
+
+    .app-title {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, var(--color-blue) 0%, var(--color-violet) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5));
+      margin-bottom: 8px;
+    }
+
+    .app-subtitle {
+      font-size: 14px;
+      color: var(--color-gray);
+      letter-spacing: 1px;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* ============================================
+       GLASS MORPHISM BASE
+    ============================================ */
+    .glass {
+      background: var(--color-glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--color-glass-border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ============================================
+       BUTTONS
+    ============================================ */
+    .btn {
+      background: var(--color-glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--color-glass-border);
+      border-radius: 12px;
+      padding: 12px 24px;
+      color: var(--color-white);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      will-change: transform;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+      border-color: rgba(0, 212, 255, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-blue) 0%, var(--color-violet) 100%);
+      border: none;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+    }
+
+    /* ============================================
+       TOGGLE BUTTON (12H/24H)
+    ============================================ */
+    .toggle-container {
+      display: flex;
+      background: var(--color-glass-bg);
+      border: 1px solid var(--color-glass-border);
+      border-radius: 12px;
+      padding: 4px;
+      backdrop-filter: blur(20px);
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-gray);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-btn.active {
+      background: linear-gradient(135deg, var(--color-blue), var(--color-violet));
+      color: white;
+    }
+
+    .toggle-btn:hover:not(.active) {
+      color: var(--color-white);
+    }
+
+    /* ============================================
+       TIMEZONE SELECT DROPDOWN
+    ============================================ */
+    .add-zone-container {
+      position: relative;
+    }
+
+    .timezone-select {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--color-glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--color-glass-border);
+      border-radius: 12px;
+      padding: 8px;
+      min-width: 280px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .timezone-select.show {
+      display: block;
+      animation: dropdownEnter 0.3s ease-out;
+    }
+
+    @keyframes dropdownEnter {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .timezone-option {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .timezone-option:hover {
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .timezone-option-city {
+      font-weight: 600;
+      color: var(--color-white);
+      margin-bottom: 4px;
+    }
+
+    .timezone-option-region {
+      font-size: 12px;
+      color: var(--color-gray);
+    }
+
+    /* ============================================
+       SLIDER SECTION
+    ============================================ */
+    .slider-section {
+      margin-bottom: 50px;
+      padding: 30px;
+      animation: pageLoad 1s ease-out 0.2s backwards;
+    }
+
+    .selected-time-display {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .selected-time {
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--color-white), var(--color-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: all 0.3s ease;
+    }
+
+    .selected-date {
+      font-size: 14px;
+      color: var(--color-gray);
+      margin-top: 8px;
+    }
+
+    /* ============================================
+       TIMELINE SLIDER
+    ============================================ */
+    .slider-wrapper {
+      position: relative;
+      padding: 20px 0;
+    }
+
+    .slider-track {
+      position: relative;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .slider-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-blue), var(--color-violet));
+      border-radius: 4px;
+      pointer-events: none;
+      transition: width 0.1s ease;
+    }
+
+    .slider-thumb {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 50%;
+      cursor: grab;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: box-shadow 0.3s ease;
+      z-index: 10;
+      animation: thumbPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes thumbPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.05); }
+    }
+
+    .slider-thumb:active {
+      cursor: grabbing;
+      animation: none;
+      transform: translate(-50%, -50%) scale(1.1);
+      box-shadow: 0 0 40px rgba(0, 212, 255, 0.8), 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ============================================
+       NOW MARKER
+    ============================================ */
+    .now-marker {
+      position: absolute;
+      top: -10px;
+      width: 2px;
+      height: 28px;
+      background: var(--color-blue);
+      transform: translateX(-50%);
+      border-radius: 2px;
+      animation: nowPulse 1.5s ease-in-out infinite;
+      z-index: 5;
+    }
+
+    @keyframes nowPulse {
+      0%, 100% {
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 25px rgba(0, 212, 255, 0.9);
+      }
+    }
+
+    .now-marker-label {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--color-blue);
+      letter-spacing: 1px;
+    }
+
+    /* ============================================
+       HOUR MARKERS
+    ============================================ */
+    .hour-markers {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 0 0;
+      user-select: none;
+    }
+
+    .hour-marker {
+      font-size: 11px;
+      color: var(--color-gray);
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .hour-marker:hover {
+      color: var(--color-blue);
+    }
+
+    .hour-marker.active {
+      color: var(--color-blue);
+      font-weight: 600;
+    }
+
+    /* ============================================
+       TIMEZONE CARDS GRID
+    ============================================ */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      animation: pageLoad 1s ease-out 0.3s backwards;
+    }
+
+    @media (max-width: 1024px) {
+      .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+      }
+
+      .header-controls {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .app-title {
+        font-size: 32px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px 15px;
+      }
+
+      .btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+    }
+
+    /* ============================================
+       TIMEZONE CARD
+    ============================================ */
+    .timezone-card {
+      padding: 24px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: cardEnter 0.5s ease-out backwards;
+      will-change: transform, opacity;
+    }
+
+    @keyframes cardEnter {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .timezone-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .timezone-card.active-base {
+      border-color: var(--color-blue);
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.3), 0 10px 40px rgba(0, 0, 0, 0.3);
+      transform: scale(1.02);
+    }
+
+    .timezone-card.removing {
+      animation: cardExit 0.3s ease-out forwards;
+    }
+
+    @keyframes cardExit {
+      to {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+    }
+
+    /* ============================================
+       CARD REMOVE BUTTON
+    ============================================ */
+    .card-remove {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--color-gray);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.2s ease;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .timezone-card:hover .card-remove {
+      opacity: 1;
+    }
+
+    .card-remove:hover {
+      background: var(--color-error);
+      color: white;
+    }
+
+    /* ============================================
+       CARD CONTENT
+    ============================================ */
+    .card-city {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .card-region {
+      font-size: 13px;
+      color: var(--color-gray);
+      margin-bottom: 20px;
+    }
+
+    .card-time-container {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card-time {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      display: inline-flex;
+    }
+
+    .card-time-digit {
+      display: inline-block;
+      transition: all 0.3s ease;
+      will-change: transform, opacity;
+    }
+
+    .card-time-digit.flip {
+      animation: digitFlip 0.4s ease-out;
+    }
+
+    @keyframes digitFlip {
+      0% { transform: rotateX(0deg); opacity: 1; }
+      50% { transform: rotateX(-90deg); opacity: 0; }
+      51% { transform: rotateX(90deg); opacity: 0; }
+      100% { transform: rotateX(0deg); opacity: 1; }
+    }
+
+    .card-ampm {
+      font-size: 14px;
+      font-weight: 600;
+      padding: 4px 10px;
+      background: linear-gradient(135deg, var(--color-blue), var(--color-violet));
+      border-radius: 6px;
+      color: white;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .card-utc {
+      font-size: 12px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: var(--color-gray);
+    }
+
+    .card-diff {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .card-diff.positive {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--color-success);
+    }
+
+    .card-diff.negative {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--color-error);
+    }
+
+    .card-diff.neutral {
+      background: rgba(100, 116, 139, 0.2);
+      color: var(--color-gray);
+    }
+
+    /* ============================================
+       LIVE MODE INDICATOR
+    ============================================ */
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-blue);
+      margin-left: 12px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--color-blue);
+      border-radius: 50%;
+      animation: livePulse 1s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ============================================
+       SCROLLBAR STYLING
+    ============================================ */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particleCanvas"></canvas>
+
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="app-title">TIMEZONE</h1>
+        <p class="app-subtitle">Real-time world clock converter</p>
+      </div>
+      <div class="header-controls">
+        <button class="btn btn-primary" id="nowBtn">
+          <span>NOW</span>
+        </button>
+        <div class="toggle-container">
+          <button class="toggle-btn active" data-format="12">12H</button>
+          <button class="toggle-btn" data-format="24">24H</button>
+        </div>
+        <div class="add-zone-container">
+          <button class="btn" id="addZoneBtn">
+            <span>+ Add Zone</span>
+          </button>
+          <div class="timezone-select glass" id="timezoneSelect"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- SLIDER SECTION -->
+    <section class="slider-section glass">
+      <div class="selected-time-display">
+        <div class="selected-time" id="selectedTime">00:00</div>
+        <div class="selected-date" id="selectedDate"></div>
+      </div>
+
+      <div class="slider-wrapper" id="sliderWrapper">
+        <div class="slider-track" id="sliderTrack">
+          <div class="slider-fill" id="sliderFill"></div>
+          <div class="slider-thumb" id="sliderThumb"></div>
+          <div class="now-marker" id="nowMarker">
+            <span class="now-marker-label">NOW</span>
+          </div>
+        </div>
+        <div class="hour-markers" id="hourMarkers"></div>
+      </div>
+    </section>
+
+    <!-- TIMEZONE CARDS -->
+    <section class="cards-grid" id="cardsGrid"></section>
+  </div>
+
+  <script>
+    // ============================================
+    // TIMEZONE DATA
+    // ============================================
+    const TIMEZONE_DATA = [
+      { iana: 'America/New_York', city: 'New York', region: 'United States' },
+      { iana: 'America/Los_Angeles', city: 'Los Angeles', region: 'United States' },
+      { iana: 'America/Chicago', city: 'Chicago', region: 'United States' },
+      { iana: 'America/Denver', city: 'Denver', region: 'United States' },
+      { iana: 'America/Toronto', city: 'Toronto', region: 'Canada' },
+      { iana: 'America/Vancouver', city: 'Vancouver', region: 'Canada' },
+      { iana: 'America/Mexico_City', city: 'Mexico City', region: 'Mexico' },
+      { iana: 'America/Sao_Paulo', city: 'São Paulo', region: 'Brazil' },
+      { iana: 'Europe/London', city: 'London', region: 'United Kingdom' },
+      { iana: 'Europe/Paris', city: 'Paris', region: 'France' },
+      { iana: 'Europe/Berlin', city: 'Berlin', region: 'Germany' },
+      { iana: 'Europe/Rome', city: 'Rome', region: 'Italy' },
+      { iana: 'Europe/Madrid', city: 'Madrid', region: 'Spain' },
+      { iana: 'Europe/Bucharest', city: 'Bucharest', region: 'Romania' },
+      { iana: 'Europe/Moscow', city: 'Moscow', region: 'Russia' },
+      { iana: 'Asia/Tokyo', city: 'Tokyo', region: 'Japan' },
+      { iana: 'Asia/Shanghai', city: 'Shanghai', region: 'China' },
+      { iana: 'Asia/Hong_Kong', city: 'Hong Kong', region: 'China' },
+      { iana: 'Asia/Singapore', city: 'Singapore', region: 'Singapore' },
+      { iana: 'Asia/Dubai', city: 'Dubai', region: 'UAE' },
+      { iana: 'Asia/Kolkata', city: 'Mumbai', region: 'India' },
+      { iana: 'Asia/Bangkok', city: 'Bangkok', region: 'Thailand' },
+      { iana: 'Asia/Seoul', city: 'Seoul', region: 'South Korea' },
+      { iana: 'Australia/Sydney', city: 'Sydney', region: 'Australia' },
+      { iana: 'Australia/Melbourne', city: 'Melbourne', region: 'Australia' },
+      { iana: 'Pacific/Auckland', city: 'Auckland', region: 'New Zealand' },
+      { iana: 'Pacific/Honolulu', city: 'Honolulu', region: 'Hawaii' },
+    ];
+
+    // ============================================
+    // APPLICATION STATE
+    // ============================================
+    const state = {
+      timezones: [],
+      baseTimezone: null,
+      selectedHour: new Date().getHours(),
+      selectedMinutes: new Date().getMinutes(),
+      isLiveMode: true,
+      timeFormat: '12',
+      mouseX: 0,
+      mouseY: 0
+    };
+
+    // ============================================
+    // PARTICLES SYSTEM
+    // ============================================
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.radius = Math.random() * 2 + 1;
+        this.color = Math.random() > 0.5 ? 'rgba(0,212,255,0.3)' : 'rgba(124,58,237,0.3)';
+        this.life = 1;
+        this.decay = Math.random() * 0.002 + 0.001;
+      }
+
+      update() {
+        // Mouse repulsion
+        const dx = this.x - state.mouseX;
+        const dy = this.y - state.mouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 100) {
+          const force = (100 - dist) / 100;
+          this.vx += (dx / dist) * force * 0.05;
+          this.vy += (dy / dist) * force * 0.05;
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Boundary check
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+
+        // Damping
+        this.vx *= 0.99;
+        this.vy *= 0.99;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      const particleCount = Math.min(100, Math.floor((canvas.width * canvas.height) / 15000));
+      particles = [];
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function drawConnections() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(0,212,255,${(1 - dist / 120) * 0.15})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      drawConnections();
+
+      animationId = requestAnimationFrame(animateParticles);
+    }
+
+    // ============================================
+    // TIMEZONE LOGIC
+    // ============================================
+    function getTimeInTimezone(hour, minute, fromTimezone, toTimezone) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const day = now.getDate();
+
+      // Create date in from timezone
+      const fromDate = new Date(Date.UTC(year, month, day, hour, minute, 0));
+
+      // Format in target timezone
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: toTimezone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: state.timeFormat === '12',
+        day: 'numeric',
+        month: 'short'
+      });
+
+      const parts = formatter.formatToParts(fromDate);
+      const timeParts = {};
+
+      parts.forEach(part => {
+        timeParts[part.type] = part.value;
+      });
+
+      return {
+        hour: timeParts.hour,
+        minute: timeParts.minute,
+        ampm: timeParts.dayPeriod || '',
+        day: timeParts.day,
+        month: timeParts.month
+      };
+    }
+
+    function getUTCOffset(timezone) {
+      const now = new Date();
+      const utc = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+      const local = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+      const diff = (local - utc) / (1000 * 60 * 60);
+      return Math.round(diff);
+    }
+
+    function getTimeDiff(baseTz, targetTz) {
+      const baseOffset = getUTCOffset(baseTz);
+      const targetOffset = getUTCOffset(targetTz);
+      return targetOffset - baseOffset;
+    }
+
+    function formatTimeDiff(diff) {
+      if (diff === 0) return '0h';
+      const sign = diff > 0 ? '+' : '';
+      return `${sign}${diff}h`;
+    }
+
+    // ============================================
+    // SLIDER LOGIC
+    // ============================================
+    const sliderWrapper = document.getElementById('sliderWrapper');
+    const sliderTrack = document.getElementById('sliderTrack');
+    const sliderFill = document.getElementById('sliderFill');
+    const sliderThumb = document.getElementById('sliderThumb');
+    const nowMarker = document.getElementById('nowMarker');
+    const hourMarkers = document.getElementById('hourMarkers');
+    const selectedTimeEl = document.getElementById('selectedTime');
+    const selectedDateEl = document.getElementById('selectedDate');
+
+    let isDragging = false;
+
+    function initSlider() {
+      // Create hour markers
+      hourMarkers.innerHTML = '';
+      for (let i = 0; i < 24; i++) {
+        const marker = document.createElement('span');
+        marker.className = 'hour-marker';
+        marker.textContent = i.toString().padStart(2, '0');
+        marker.dataset.hour = i;
+        marker.addEventListener('click', () => {
+          setSliderHour(i);
+        });
+        hourMarkers.appendChild(marker);
+      }
+    }
+
+    function updateSliderPosition() {
+      const percentage = (state.selectedHour + state.selectedMinutes / 60) / 24 * 100;
+      sliderFill.style.width = `${percentage}%`;
+      sliderThumb.style.left = `${percentage}%`;
+
+      // Update hour markers
+      document.querySelectorAll('.hour-marker').forEach((marker, i) => {
+        marker.classList.toggle('active', i === state.selectedHour);
+      });
+    }
+
+    function updateNowMarker() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const percentage = (hours + minutes / 60) / 24 * 100;
+      nowMarker.style.left = `${percentage}%`;
+    }
+
+    function setSliderHour(hour, minutes = 0) {
+      state.selectedHour = hour;
+      state.selectedMinutes = minutes;
+      updateSliderPosition();
+      updateAllCards();
+      updateSelectedTimeDisplay();
+    }
+
+    function updateSelectedTimeDisplay() {
+      const time = getTimeInTimezone(
+        state.selectedHour,
+        state.selectedMinutes,
+        state.baseTimezone?.iana || 'UTC',
+        state.baseTimezone?.iana || 'UTC'
+      );
+
+      const timeStr = state.timeFormat === '12'
+        ? `${time.hour}:${time.minute} ${time.ampm}`
+        : `${state.selectedHour.toString().padStart(2, '0')}:${state.selectedMinutes.toString().padStart(2, '0')}`;
+
+      selectedTimeEl.textContent = timeStr;
+
+      const now = new Date();
+      selectedDateEl.textContent = now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
+    // Slider event handlers
+    function handleSliderClick(e) {
+      if (isDragging) return;
+      const rect = sliderTrack.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percentage = x / rect.width;
+      const hour = Math.round(percentage * 24) % 24;
+      setSliderHour(hour);
+      disableLiveMode();
+    }
+
+    let startX = 0;
+    let startPercentage = 0;
+
+    function handleDragStart(e) {
+      isDragging = true;
+      startX = e.clientX || e.touches[0].clientX;
+      const rect = sliderTrack.getBoundingClientRect();
+      startPercentage = (parseFloat(sliderThumb.style.left) || 0) / 100;
+      state.isLiveMode = false;
+      sliderThumb.style.transition = 'none';
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+      document.addEventListener('touchmove', handleDragMove);
+      document.addEventListener('touchend', handleDragEnd);
+    }
+
+    function handleDragMove(e) {
+      if (!isDragging) return;
+      const clientX = e.clientX || e.touches?.[0]?.clientX;
+      if (!clientX) return;
+
+      const rect = sliderTrack.getBoundingClientRect();
+      const deltaX = clientX - startX;
+      const deltaPercentage = deltaX / rect.width;
+      let newPercentage = startPercentage + deltaPercentage;
+
+      // Clamp between 0 and 1
+      newPercentage = Math.max(0, Math.min(1, newPercentage));
+
+      const totalMinutes = newPercentage * 24 * 60;
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = Math.floor((totalMinutes % 60) / 15) * 15; // Snap to 15-minute increments while dragging
+
+      state.selectedHour = hours;
+      state.selectedMinutes = minutes;
+
+      sliderFill.style.width = `${newPercentage * 100}%`;
+      sliderThumb.style.left = `${newPercentage * 100}%`;
+
+      updateAllCards();
+      updateSelectedTimeDisplay();
+    }
+
+    function handleDragEnd(e) {
+      isDragging = false;
+      sliderThumb.style.transition = '';
+
+      // Snap to nearest hour
+      const snappedHour = Math.round(state.selectedHour + state.selectedMinutes / 60) % 24;
+      setSliderHour(snappedHour);
+
+      document.removeEventListener('mousemove', handleDragMove);
+      document.removeEventListener('mouseup', handleDragEnd);
+      document.removeEventListener('touchmove', handleDragMove);
+      document.removeEventListener('touchend', handleDragEnd);
+    }
+
+    sliderTrack.addEventListener('click', handleSliderClick);
+    sliderThumb.addEventListener('mousedown', handleDragStart);
+    sliderThumb.addEventListener('touchstart', handleDragStart);
+
+    // ============================================
+    // CARDS MANAGEMENT
+    // ============================================
+    const cardsGrid = document.getElementById('cardsGrid');
+
+    function createTimezoneCard(tz, index) {
+      const card = document.createElement('div');
+      card.className = 'timezone-card glass';
+      card.dataset.iana = tz.iana;
+      card.style.animationDelay = `${index * 0.1}s`;
+
+      if (state.baseTimezone && tz.iana === state.baseTimezone.iana) {
+        card.classList.add('active-base');
+      }
+
+      const time = getTimeInTimezone(
+        state.selectedHour,
+        state.selectedMinutes,
+        state.baseTimezone?.iana || 'UTC',
+        tz.iana
+      );
+
+      const diff = state.baseTimezone ? getTimeDiff(state.baseTimezone.iana, tz.iana) : 0;
+      const utcOffset = getUTCOffset(tz.iana);
+
+      card.innerHTML = `
+        <button class="card-remove">&times;</button>
+        <div class="card-city">${tz.city}</div>
+        <div class="card-region">${tz.region}</div>
+        <div class="card-time-container">
+          <div class="card-time" data-time="${tz.iana}">${formatTimeHTML(time)}</div>
+          ${state.timeFormat === '12' ? `<span class="card-ampm">${time.ampm}</span>` : ''}
+        </div>
+        <div class="card-meta">
+          <span class="card-utc">UTC${utcOffset >= 0 ? '+' : ''}${utcOffset}</span>
+          ${diff !== 0 || state.baseTimezone ? `
+            <span class="card-diff ${diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral'}">
+              ${formatTimeDiff(diff)}
+            </span>
+          ` : ''}
+        </div>
+      `;
+
+      // Set as base timezone
+      card.addEventListener('click', (e) => {
+        if (e.target.classList.contains('card-remove')) return;
+        setBaseTimezone(tz);
+      });
+
+      // Remove card
+      card.querySelector('.card-remove').addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeCard(tz.iana);
+      });
+
+      return card;
+    }
+
+    function formatTimeHTML(time) {
+      const displayHour = state.timeFormat === '12' ? time.hour : state.selectedHour.toString().padStart(2, '0');
+      const displayMinute = state.timeFormat === '12' ? time.minute : state.selectedMinutes.toString().padStart(2, '0');
+
+      return `${displayHour}<span class="card-time-digit">:</span>${displayMinute}`;
+    }
+
+    function updateAllCards() {
+      state.timezones.forEach(tz => {
+        const card = document.querySelector(`[data-iana="${tz.iana}"]`);
+        if (!card) return;
+
+        const time = getTimeInTimezone(
+          state.selectedHour,
+          state.selectedMinutes,
+          state.baseTimezone?.iana || 'UTC',
+          tz.iana
+        );
+
+        const timeEl = card.querySelector('.card-time');
+        const newTimeStr = formatTimeHTML(time);
+        const oldTimeStr = timeEl.innerHTML;
+
+        if (newTimeStr !== oldTimeStr) {
+          timeEl.innerHTML = newTimeStr;
+          // Animate digits
+          timeEl.querySelectorAll('.card-time-digit').forEach(digit => {
+            digit.classList.add('flip');
+            setTimeout(() => digit.classList.remove('flip'), 400);
+          });
+        }
+
+        const ampmEl = card.querySelector('.card-ampm');
+        if (ampmEl && time.ampm) {
+          ampmEl.textContent = time.ampm;
+        }
+
+        // Update diff
+        if (state.baseTimezone) {
+          const diff = getTimeDiff(state.baseTimezone.iana, tz.iana);
+          const diffEl = card.querySelector('.card-diff');
+          if (diffEl) {
+            diffEl.className = `card-diff ${diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral'}`;
+            diffEl.textContent = formatTimeDiff(diff);
+          }
+        }
+      });
+    }
+
+    function renderCards() {
+      cardsGrid.innerHTML = '';
+      state.timezones.forEach((tz, index) => {
+        cardsGrid.appendChild(createTimezoneCard(tz, index));
+      });
+    }
+
+    function addTimezone(tz) {
+      if (state.timezones.find(t => t.iana === tz.iana)) return;
+      state.timezones.push(tz);
+      renderCards();
+    }
+
+    function removeCard(iana) {
+      const card = document.querySelector(`[data-iana="${iana}"]`);
+      if (card) {
+        card.classList.add('removing');
+        setTimeout(() => {
+          state.timezones = state.timezones.filter(t => t.iana !== iana);
+          renderCards();
+        }, 300);
+      }
+    }
+
+    function setBaseTimezone(tz) {
+      state.baseTimezone = tz;
+      document.querySelectorAll('.timezone-card').forEach(card => {
+        card.classList.toggle('active-base', card.dataset.iana === tz.iana);
+      });
+      updateAllCards();
+    }
+
+    // ============================================
+    // UI CONTROLS
+    // ============================================
+    const nowBtn = document.getElementById('nowBtn');
+    const addZoneBtn = document.getElementById('addZoneBtn');
+    const timezoneSelect = document.getElementById('timezoneSelect');
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+
+    // NOW button
+    nowBtn.addEventListener('click', () => {
+      enableLiveMode();
+    });
+
+    function enableLiveMode() {
+      state.isLiveMode = true;
+      syncToCurrentTime();
+      nowBtn.innerHTML = '<span>NOW</span><span class="live-indicator"><span class="live-dot"></span>LIVE</span>';
+    }
+
+    function disableLiveMode() {
+      state.isLiveMode = false;
+      nowBtn.innerHTML = '<span>NOW</span>';
+    }
+
+    function syncToCurrentTime() {
+      const now = new Date();
+      setSliderHour(now.getHours(), now.getMinutes());
+    }
+
+    // Time format toggle
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.timeFormat = btn.dataset.format;
+        toggleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderCards();
+        updateSelectedTimeDisplay();
+      });
+    });
+
+    // Add timezone dropdown
+    addZoneBtn.addEventListener('click', () => {
+      timezoneSelect.classList.toggle('show');
+      if (timezoneSelect.classList.contains('show')) {
+        populateTimezoneSelect();
+      }
+    });
+
+    function populateTimezoneSelect() {
+      timezoneSelect.innerHTML = '';
+      const available = TIMEZONE_DATA.filter(tz =>
+        !state.timezones.find(t => t.iana === tz.iana)
+      );
+
+      available.forEach(tz => {
+        const option = document.createElement('div');
+        option.className = 'timezone-option';
+        option.innerHTML = `
+          <div class="timezone-option-city">${tz.city}</div>
+          <div class="timezone-option-region">${tz.region}</div>
+        `;
+        option.addEventListener('click', () => {
+          addTimezone(tz);
+          timezoneSelect.classList.remove('show');
+        });
+        timezoneSelect.appendChild(option);
+      });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!addZoneBtn.contains(e.target) && !timezoneSelect.contains(e.target)) {
+        timezoneSelect.classList.remove('show');
+      }
+    });
+
+    // ============================================
+    // LIVE MODE UPDATE
+    // ============================================
+    let liveInterval;
+
+    function startLiveMode() {
+      liveInterval = setInterval(() => {
+        if (state.isLiveMode) {
+          syncToCurrentTime();
+        }
+        updateNowMarker();
+      }, 1000);
+    }
+
+    // ============================================
+    // MOUSE TRACKING FOR PARTICLES
+    // ============================================
+    document.addEventListener('mousemove', (e) => {
+      state.mouseX = e.clientX;
+      state.mouseY = e.clientY;
+    });
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    function init() {
+      // Resize canvas
+      resizeCanvas();
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        initParticles();
+      });
+
+      // Initialize particles
+      initParticles();
+      animateParticles();
+
+      // Initialize slider
+      initSlider();
+      updateSliderPosition();
+      updateNowMarker();
+
+      // Set default timezones
+      const defaultTimezones = [
+        'America/New_York',
+        'Europe/London',
+        'Europe/Bucharest',
+        'Asia/Tokyo',
+        'Asia/Dubai'
+      ];
+
+      defaultTimezones.forEach(iana => {
+        const tz = TIMEZONE_DATA.find(t => t.iana === iana);
+        if (tz) state.timezones.push(tz);
+      });
+
+      // Set base timezone to user's local timezone or default
+      const localIana = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const localTz = TIMEZONE_DATA.find(t => t.iana === localIana);
+      state.baseTimezone = localTz || state.timezones[0];
+
+      // Render cards
+      renderCards();
+
+      // Update display
+      updateSelectedTimeDisplay();
+
+      // Start live mode
+      startLiveMode();
+      enableLiveMode();
+    }
+
+    // Run initialization
+    init();
+  </script>
+</body>
+</html>

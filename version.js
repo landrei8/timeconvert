@@ -4,8 +4,8 @@
 // Edit ONLY this file to update the version across all pages.
 // After changing, just refresh any page — it will pick it up automatically..
 
-const APP_VERSION = "v1.8.2 - 00:29PM EET";
-const APP_BUILD_DATE = "March 2026";
+const APP_VERSION = "v2.0 - 19:43PM EET";
+const APP_BUILD_DATE = "May 2026";
 
 // Automatically inject version into any element with class "build-tag"
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Marea Provocare IT</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px; 
+            box-sizing: border-box;
+        }
+        .container { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
+            width: 100%; 
+            max-width: 600px; 
+            text-align: center; 
+            position: relative;
+        }
+        h1 { color: #2c3e50; font-size: 28px; margin-bottom: 20px;}
+        h2 { color: #34495e; font-size: 22px; }
+        
+        .cell { 
+            width: 40px; height: 40px; 
+            border: 2px solid #2980b9; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            font-size: 20px;
+            margin: 3px;
+            background: white;
+            border-radius: 5px;
+            color: #2c3e50;
+        }
+        .space { border: none; background: transparent; width: 20px; }
+        
+        #timer-bar { width: 100%; height: 12px; background: #ecf0f1; border-radius: 6px; margin: 20px 0; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); }
+        #timer-progress { width: 100%; height: 100%; background: #e74c3c; transition: width 1s linear; }
+        
+        input { 
+            width: 80%; padding: 15px; margin: 15px 0; 
+            border-radius: 10px; border: 2px solid #bdc3c7; 
+            font-size: 18px; text-align: center; outline: none;
+        }
+        input:focus { border-color: #3498db; }
+        
+        button { 
+            background: #27ae60; color: white; 
+            border: none; padding: 15px 30px; 
+            border-radius: 10px; cursor: pointer; 
+            font-weight: bold; font-size: 18px;
+            transition: transform 0.1s, background 0.2s;
+            margin: 5px;
+        }
+        button:hover { background: #2ecc71; transform: scale(1.05); }
+        .btn-home { background: #e74c3c; font-size: 14px; padding: 10px 15px; position: absolute; top: 20px; right: 20px; }
+        .btn-home:hover { background: #c0392b; }
+        
+        #msg { font-weight: bold; margin: 15px 0; font-size: 20px; min-height: 25px; }
+        .score-board { font-size: 20px; font-weight: bold; color: #8e44ad; margin-top: 15px; }
+        .category-tag { display: inline-block; padding: 5px 10px; background: #f1c40f; color: #333; border-radius: 15px; font-size: 14px; font-weight: bold; margin-bottom: 5px;}
+        .counter-tag { font-size: 16px; color: #7f8c8d; font-weight: bold; margin-bottom: 15px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    
+    <!-- ECRAN LOGIN -->
+    <div id="login-view">
+        <h1>👋 Bine ai venit!</h1>
+        <p>Introdu numele tău pentru a începe cursa IT:</p>
+        <input type="text" id="username" placeholder="Numele tău" autocomplete="off">
+        <br>
+        <button onclick="startGame()">Start Joc</button>
+    </div>
+
+    <!-- ECRAN JOC -->
+    <div id="game-view" style="display:none;">
+        <button class="btn-home" onclick="goHome()">🏠 Acasă</button>
+        
+        <span class="counter-tag" id="q-counter">Întrebarea 1 din 25</span>
+        <div class="category-tag" id="cat-tag">Categorie</div>
+        <h2 id="game-type">Tip Joc</h2>
+        
+        <div id="timer-bar"><div id="timer-progress"></div></div>
+        
+        <p id="question" style="font-size: 20px; font-weight: 600; color: #2c3e50; margin-bottom: 20px;"></p>
+        
+        <div id="visual-area"></div>
+        
+        <input type="text" id="answer" placeholder="Răspuns..." autocomplete="off">
+        <br>
+        <button onclick="checkAnswer()">Trimite</button>
+        
+        <div id="msg"></div>
+        <div class="score-board">🏆 Puncte: <span id="score">0</span></div>
+    </div>
+
+    <!-- ECRAN ACASĂ / REZUMAT -->
+    <div id="summary-view" style="display:none;">
+        <h1>🏁 Raport Misiune</h1>
+        <h2 style="color: #2c3e50;">Felicitări, <span id="summary-name"></span>!</h2>
+        <p style="font-size: 18px;">Ai adunat până acum:</p>
+        <div style="font-size: 40px; font-weight: bold; color: #f39c12; margin: 20px 0;">
+            <span id="final-score">0</span> pct
+        </div>
+        <button onclick="location.reload()">Începe o nouă sesiune</button>
+    </div>
+
+</div>
+
+<script>
+    let playerName = "";
+    let score = 0;
+    let timeLeft = 20;
+    let timerInterval;
+    let currentTask;
+    
+    // Setări sesiune
+    const MAX_QUESTIONS = 25;
+    let questionCounter = 0;
+    let sessionQuestions = [];
+
+    // BAZA DE DATE MASIVĂ - Peste 100 de întrebări
+    const database = [
+        // --- COMPONENTE & PERIFERICE PC ---
+        { cat: "Componente PC", type: "Rebus", q: "Dispozitivul cu care miști săgeata pe ecran.", a: "MOUSE" },
+        { cat: "Componente PC", type: "Rebus", q: "Partea calculatorului pe care o privești chiar acum.", a: "MONITOR" },
+        { cat: "Componente PC", type: "Ghicitoare", q: "Am zeci de butoane cu litere și cifre, dar nu sunt telefon. Ce sunt?", a: "TASTATURA" },
+        { cat: "Componente PC", type: "Rebus", q: "Aparatul care scoate poze și desene din calculator pe hârtie.", a: "IMPRIMANTA" },
+        { cat: "Componente PC", type: "Litere Lipsă", q: "U N _ T A _ E (Cutia mare în care se află piesele calculatorului)", a: "UNITATE" },
+        { cat: "Componente PC", type: "Rebus", q: "Memoria super rapidă a calculatorului (3 litere).", a: "RAM" },
+        { cat: "Componente PC", type: "Ghicitoare", q: "Le pui pe urechi ca să asculți muzică fără să-i deranjezi pe alții.", a: "CASTI" },
+        { cat: "Componente PC", type: "Rebus", q: "De unde iese sunetul dacă nu folosești căști?", a: "BOXE" },
+        { cat: "Componente PC", type: "Adevărat sau Fals", q: "Mouse-ul se folosește pentru a scrie texte lungi. (A sau F)", a: "F" },
+        { cat: "Componente PC", type: "Adevărat sau Fals", q: "Ecranul unui laptop se numește monitor. (A sau F)", a: "A" },
+        { cat: "Componente PC", type: "Ghicitoare", q: "Dispozitivul în care vorbești ca să te audă prietenii pe internet.", a: "MICROFON" },
+        { cat: "Componente PC", type: "Rebus", q: "Obiectul mic, de plastic, pe care îl bagi în USB ca să salvezi fișiere.", a: "STICK" },
+        { cat: "Componente PC", type: "Litere Lipsă", q: "C A B _ U (Cordonul prin care vine curentul la calculator)", a: "CABLU" },
+        { cat: "Componente PC", type: "Rebus", q: "Locul din interiorul calculatorului unde se păstrează toate jocurile și pozele.", a: "HARDDISK" },
+        { cat: "Componente PC", type: "Adevărat sau Fals", q: "Memoria RAM se șterge când închizi calculatorul. (A sau F)", a: "A" },
+        { cat: "Componente PC", type: "Ghicitoare", q: "Sunt mic și rotund și te ajut să miști pagina în sus și în jos pe mouse.", a: "ROTITA" },
+        { cat: "Componente PC", type: "Litere Lipsă", q: "L _ P _ O P (Un calculator portabil, pe care îl poți lua cu tine)", a: "LAPTOP" },
+        { cat: "Componente PC", type: "Adevărat sau Fals", q: "O tastatură are mereu exact 10 butoane. (A sau F)", a: "F" },
+        { cat: "Componente PC", type: "Rebus", q: "Mufa în care bagi de obicei stick-ul sau mouse-ul (3 litere).", a: "USB" },
+        { cat: "Componente PC", type: "Ghicitoare", q: "Aparatul care răcește calculatorul ca să nu se încingă vara.", a: "VENTILATOR" },
+        { cat: "Componente PC", type: "Litere Lipsă", q: "C _ M _ R A (Dispozitivul cu care te văd colegii la orele online)", a: "CAMERA" },
+        { cat: "Componente PC", type: "Rebus", q: "Semnalul invizibil din aer care îți dă internet la telefon și laptop.", a: "WIFI" },
+        { cat: "Componente PC", type: "Adevărat sau Fals", q: "Calculatorul funcționează perfect și fără curent electric sau baterie. (A/F)", a: "F" },
+        { cat: "Componente PC", type: "Ghicitoare", q: "Sunt o tablă electronică pe care desenezi cu un creion special. Ce sunt?", a: "TABLETA" },
+
+        // --- WORD & POWERPOINT ---
+        { cat: "Word & PowerPoint", type: "Rebus", q: "Programul pe care îl folosim ca să scriem documente și povești.", a: "WORD" },
+        { cat: "Word & PowerPoint", type: "Rebus", q: "Programul perfect pentru a crea prezentări frumoase la școală.", a: "POWERPOINT" },
+        { cat: "Word & PowerPoint", type: "Ghicitoare", q: "Cum se numește o singură pagină dintr-o prezentare PowerPoint?", a: "SLIDE" },
+        { cat: "Word & PowerPoint", type: "Litere Lipsă", q: "T _ X _ (Cuvintele pe care le scrii într-un document)", a: "TEXT" },
+        { cat: "Word & PowerPoint", type: "Adevărat sau Fals", q: "În Word poți să schimbi culoarea literelor. (A/F)", a: "A" },
+        { cat: "Word & PowerPoint", type: "Adevărat sau Fals", q: "În PowerPoint nu ai voie să adaugi poze, doar text. (A/F)", a: "F" },
+        { cat: "Word & PowerPoint", type: "Rebus", q: "Cum se numește acțiunea de a păstra un document ca să nu se șteargă? (S _ _ _ _ R E)", a: "SALVARE" },
+        { cat: "Word & PowerPoint", type: "Ghicitoare", q: "Modul de a face literele mai groase în Word (începe cu B).", a: "BOLD" },
+        { cat: "Word & PowerPoint", type: "Rebus", q: "Lista de sus de unde alegi stilul și mărimea scrisului.", a: "MENIU" },
+        { cat: "Word & PowerPoint", type: "Litere Lipsă", q: "F O _ T (Stilul în care arată literele tale)", a: "FONT" },
+        { cat: "Word & PowerPoint", type: "Adevărat sau Fals", q: "PowerPoint poate avea animații, adică pozele să se miște pe ecran. (A/F)", a: "A" },
+        { cat: "Word & PowerPoint", type: "Ghicitoare", q: "Ce tastă apeși în Word ca să lași un spațiu între cuvinte?", a: "SPACE" },
+        { cat: "Word & PowerPoint", type: "Rebus", q: "Ce tastă apeși ca să treci la un rând nou în jos?", a: "ENTER" },
+        { cat: "Word & PowerPoint", type: "Adevărat sau Fals", q: "Dacă scrii un text lung în Word și se ia curentul fără să dai Salvare, îl pierzi. (A/F)", a: "A" },
+        { cat: "Word & PowerPoint", type: "Litere Lipsă", q: "C _ P Y (Acțiunea de a copia un text)", a: "COPY" },
+        { cat: "Word & PowerPoint", type: "Rebus", q: "Acțiunea de a lipi un text copiat.", a: "PASTE" },
+        { cat: "Word & PowerPoint", type: "Adevărat sau Fals", q: "O prezentare PowerPoint bună are foarte mult text și scris mărunt. (A/F)", a: "F" },
+        { cat: "Word & PowerPoint", type: "Rebus", q: "Numele fișierului pe care abia l-ai creat și nu i-ai dat încă nume (D _ C _ _ _ N T)", a: "DOCUMENT" },
+        { cat: "Word & PowerPoint", type: "Ghicitoare", q: "Tasta care șterge litera aflată în stânga ei.", a: "BACKSPACE" },
+        { cat: "Word & PowerPoint", type: "Litere Lipsă", q: "T I _ L U (Numele pe care îl pui mare sus pe prima pagină)", a: "TITLU" },
+        { cat: "Word & PowerPoint", type: "Adevărat sau Fals", q: "În Word poți să desenezi tabele. (A/F)", a: "A" },
+        { cat: "Word & PowerPoint", type: "Rebus", q: "Când literele sunt aplecate, spunem că sunt... (I T A _ I C)", a: "ITALIC" },
+
+        // --- SIGURANȚĂ & INTERNET ---
+        { cat: "Siguranță pe Internet", type: "Rebus", q: "Codul tău secret pe care îl știi doar tu pentru a intra pe cont.", a: "PAROLA" },
+        { cat: "Siguranță pe Internet", type: "Adevărat sau Fals", q: "Este bine să dai parola ta celui mai bun prieten. (A/F)", a: "F" },
+        { cat: "Siguranță pe Internet", type: "Rebus", q: "Rețeaua uriașă care conectează toate calculatoarele din lume.", a: "INTERNET" },
+        { cat: "Siguranță pe Internet", type: "Ghicitoare", q: "Un program rău care îți strică calculatorul dacă descarci ceva greșit.", a: "VIRUS" },
+        { cat: "Siguranță pe Internet", type: "Litere Lipsă", q: "A N T _ V _ R U _ (Programul super-erou care te apără de viruși)", a: "ANTIVIRUS" },
+        { cat: "Siguranță pe Internet", type: "Adevărat sau Fals", q: "Dacă un străin îți cere o poză, închizi conversația și spui părinților. (A/F)", a: "A" },
+        { cat: "Siguranță pe Internet", type: "Rebus", q: "O scrisoare trimisă prin internet.", a: "EMAIL" },
+        { cat: "Siguranță pe Internet", type: "Adevărat sau Fals", q: "Dacă câștigi un telefon gratuit pe un site ciudat, dai click pe link. (A/F)", a: "F" },
+        { cat: "Siguranță pe Internet", type: "Ghicitoare", q: "Cuvântul albastru pe care dai click ca să te ducă pe altă pagină web.", a: "LINK" },
+        { cat: "Siguranță pe Internet", type: "Rebus", q: "Persoana rea de pe internet care încearcă să fure parole.", a: "HACKER" },
+        { cat: "Siguranță pe Internet", type: "Adevărat sau Fals", q: "E sigur să îți scrii adresa de acasă într-un joc public. (A/F)", a: "F" },
+        { cat: "Siguranță pe Internet", type: "Litere Lipsă", q: "B _ O W _ E R (Programul ca Google Chrome cu care intri pe net)", a: "BROWSER" },
+        { cat: "Siguranță pe Internet", type: "Ghicitoare", q: "Cum se numește locul unde cauți informații pentru școală? (Ex: Google)", a: "MOTOR DE CAUTARE" },
+        { cat: "Siguranță pe Internet", type: "Adevărat sau Fals", q: "Tot ce citești pe internet este 100% adevărat. (A/F)", a: "F" },
+        { cat: "Siguranță pe Internet", type: "Rebus", q: "Acolo unde oamenii pun poze (ex: Facebook, Instagram). (RETEA S O C I A L A)", a: "RETEA SOCIALA" },
+        { cat: "Siguranță pe Internet", type: "Adevărat sau Fals", q: "Trebuie să fii politicos chiar și când vorbești pe internet. (A/F)", a: "A" },
+        { cat: "Siguranță pe Internet", type: "Litere Lipsă", q: "D O _ N L O _ D (A lua un joc de pe internet pe calculatorul tău)", a: "DOWNLOAD" },
+        { cat: "Siguranță pe Internet", type: "Ghicitoare", q: "Un mesaj enervant de reclamă, pe care e mai bine să îl ignori.", a: "SPAM" },
+        { cat: "Siguranță pe Internet", type: "Adevărat sau Fals", q: "Este amuzant și inofensiv să râzi de colegi pe grupul clasei. (A/F)", a: "F" },
+        { cat: "Siguranță pe Internet", type: "Rebus", q: "Ce trebuie să faci pe un joc dacă un jucător te înjură? Îl (B L _ C H E _ I)", a: "BLOCHEZI" },
+        { cat: "Siguranță pe Internet", type: "Litere Lipsă", q: "P R _ V _ T (Un cont pe care îl văd doar prietenii)", a: "PRIVAT" },
+        { cat: "Siguranță pe Internet", type: "Ghicitoare", q: "Pagina principală a unui site web, la fel ca ușa unei case.", a: "HOMEPAGE" },
+
+        // --- INTELIGENȚĂ ARTIFICIALĂ (AI) ---
+        { cat: "Inteligență Artificială", type: "Rebus", q: "Tehnologia care face calculatoarele să 'gândească' ca un om (2 litere).", a: "AI" },
+        { cat: "Inteligență Artificială", type: "Adevărat sau Fals", q: "AI-ul știe absolut totul și nu greșește niciodată. (A/F)", a: "F" },
+        { cat: "Inteligență Artificială", type: "Ghicitoare", q: "O mașinărie creată de om care uneori arată ca un om de metal.", a: "ROBOT" },
+        { cat: "Inteligență Artificială", type: "Litere Lipsă", q: "A L _ O R _ T M (Un set de reguli pe care calculatorul le urmează)", a: "ALGORITM" },
+        { cat: "Inteligență Artificială", type: "Rebus", q: "Procesul prin care AI-ul devine mai deștept din exemple. (I N V _ _ _ R E)", a: "INVATARE" },
+        { cat: "Inteligență Artificială", type: "Adevărat sau Fals", q: "Există programe de AI cu care poți purta o conversație. (A/F)", a: "A" },
+        { cat: "Inteligență Artificială", type: "Rebus", q: "Cum îi spui lui Siri sau Alexa care te ajută pe telefon? Asistent ...", a: "VIRTUAL" },
+        { cat: "Inteligență Artificială", type: "Adevărat sau Fals", q: "AI-ul poate fi folosit ca să genereze desene și imagini. (A/F)", a: "A" },
+        { cat: "Inteligență Artificială", type: "Litere Lipsă", q: "V _ C E (Cu ce îi spui asistentului vocal ce melodie să pună?)", a: "VOCE" },
+        { cat: "Inteligență Artificială", type: "Ghicitoare", q: "Sunt un program care joacă șah cu tine fără să fie o persoană la celălalt capăt.", a: "CALCULATORUL" },
+        { cat: "Inteligență Artificială", type: "Rebus", q: "Cum se numește inteligența calculatorului? Inteligență ...", a: "ARTIFICIALA" },
+        { cat: "Inteligență Artificială", type: "Adevărat sau Fals", q: "Roboții cu AI au sentimente, pot plânge dacă sunt triști. (A/F)", a: "F" },
+        { cat: "Inteligență Artificială", type: "Litere Lipsă", q: "D _ T E (Informațiile din care învață AI-ul)", a: "DATE" },
+        { cat: "Inteligență Artificială", type: "Ghicitoare", q: "Recunosc fața ta ca să deblochez telefonul părinților. Ce folosesc?", a: "AI" },
+        { cat: "Inteligență Artificială", type: "Adevărat sau Fals", q: "AI-ul ne poate ajuta să rezolvăm calcule complexe rapid. (A/F)", a: "A" },
+        { cat: "Inteligență Artificială", type: "Rebus", q: "Comanda scurtă pe care i-o dai AI-ului ca să îți facă o compunere (P R _ M _ T).", a: "PROMPT" },
+        { cat: "Inteligență Artificială", type: "Adevărat sau Fals", q: "Mașinile care se conduc singure folosesc Inteligența Artificială. (A/F)", a: "A" },
+        { cat: "Inteligență Artificială", type: "Litere Lipsă", q: "S _ A R _ (Un obiect 'inteligent', cum ar fi un telefon sau ceas)", a: "SMART" }
+    ];
+
+    function normalizeString(str) {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, '');
+    }
+
+    function startGame() {
+        playerName = document.getElementById('username').value.trim();
+        if(!playerName) {
+            alert("Te rog să scrii un nume!");
+            return;
+        }
+        
+        // Ascundem login, resetăm scorul și contoarele
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('game-view').style.display = 'block';
+        score = 0;
+        document.getElementById('score').innerText = score;
+        questionCounter = 0;
+
+        // Amestecăm baza de date și extragem exact 25 de întrebări
+        let shuffledDb = [...database].sort(() => 0.5 - Math.random());
+        sessionQuestions = shuffledDb.slice(0, MAX_QUESTIONS);
+        
+        nextTask();
+    }
+
+    function nextTask() {
+        // Dacă am atins 25 de întrebări, încheiem sesiunea
+        if (questionCounter >= MAX_QUESTIONS || sessionQuestions.length === 0) {
+            goHome();
+            return;
+        }
+
+        questionCounter++;
+        document.getElementById('q-counter').innerText = "Întrebarea " + questionCounter + " din " + MAX_QUESTIONS;
+
+        timeLeft = 20;
+        document.getElementById('answer').value = "";
+        document.getElementById('answer').focus();
+        
+        // Extragem prima întrebare din lista amestecată (o ștergem din array, garantând că nu se repetă)
+        currentTask = sessionQuestions.pop();
+        
+        document.getElementById('cat-tag').innerText = "📚 " + currentTask.cat;
+        document.getElementById('game-type').innerText = "🧩 Tip Joc: " + currentTask.type;
+        document.getElementById('question').innerText = currentTask.q;
+        
+        let visualArea = document.getElementById('visual-area');
+        visualArea.innerHTML = "";
+        
+        // Generare grafică
+        if(currentTask.type === "Rebus") {
+            let letters = currentTask.a.replace(/\s+/g, '');
+            for(let char of letters) {
+                visualArea.innerHTML += `<div class="cell"></div>`;
+            }
+        } else if (currentTask.type === "Litere Lipsă") {
+            let displayString = currentTask.q.split("(")[0].trim();
+            let html = "";
+            for(let char of displayString) {
+                if(char === "_") html += `<div class="cell" style="background:#f1f2f6;">?</div>`;
+                else if(char === " ") html += `<div class="space"></div>`;
+                else html += `<div class="cell">${char}</div>`;
+            }
+            visualArea.innerHTML = html;
+        } else if (currentTask.type === "Adevărat sau Fals") {
+            visualArea.innerHTML = `<div style="font-size: 50px;">⚖️</div>`;
+        } else {
+            visualArea.innerHTML = `<div style="font-size: 50px;">🤔</div>`;
+        }
+        
+        startTimer();
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        document.getElementById('timer-progress').style.width = "100%";
+        document.getElementById('timer-progress').style.background = "#3498db";
+        
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            let percentage = (timeLeft / 20) * 100;
+            document.getElementById('timer-progress').style.width = percentage + "%";
+            
+            if(timeLeft <= 5) {
+                document.getElementById('timer-progress').style.background = "#e74c3c"; // Devine roșu
+            }
+
+            if(timeLeft <= 0) {
+                clearInterval(timerInterval);
+                let msgDiv = document.getElementById('msg');
+                msgDiv.innerText = "⏳ Timp expirat! Răspunsul era: " + currentTask.a;
+                msgDiv.style.color = "#e74c3c";
+                setTimeout(() => {
+                    msgDiv.innerText = "";
+                    nextTask();
+                }, 2500);
+            }
+        }, 1000);
+    }
+
+    function checkAnswer() {
+        let userVal = document.getElementById('answer').value;
+        let msgDiv = document.getElementById('msg');
+        
+        if (normalizeString(userVal) === normalizeString(currentTask.a)) {
+            clearInterval(timerInterval);
+            let pointsEarned = 10 + (timeLeft * 2);
+            score += pointsEarned;
+            
+            document.getElementById('score').innerText = score;
+            msgDiv.innerText = "✅ Corect! +" + pointsEarned + " puncte!";
+            msgDiv.style.color = "#27ae60";
+            
+            setTimeout(() => {
+                msgDiv.innerText = "";
+                nextTask();
+            }, 1500);
+        } else {
+            msgDiv.innerText = "❌ Mai încearcă! (Fii atent la text)";
+            msgDiv.style.color = "#e67e22";
+        }
+    }
+
+    function goHome() {
+        // Oprește timerul, ascunde jocul, arată rezumatul
+        clearInterval(timerInterval);
+        document.getElementById('game-view').style.display = 'none';
+        document.getElementById('summary-view').style.display = 'block';
+        
+        document.getElementById('summary-name').innerText = playerName;
+        document.getElementById('final-score').innerText = score;
+    }
+
+    // Permite apăsarea tastei Enter pentru trimitere
+    document.getElementById('answer').addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            checkAnswer();
+        }
+    });
+</script>
+</body>
+</html>

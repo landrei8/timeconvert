@@ -17,3 +17,6 @@
     }
   ]
 }
+
+
+days remaining update: if(empty(item()?['deadline']), -999, div(sub(ticks(formatDateTime(item()?['deadline'], 'yyyy-MM-dd')), ticks(formatDateTime(utcNow(), 'yyyy-MM-dd'))), 864000000000))

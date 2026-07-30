@@ -1,22 +1,38 @@
-{
-  "type": "AdaptiveCard",
-  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-  "version": "1.4",
-  "body": [
-    { "type": "TextBlock", "text": "⚠️ Deadline approaching", "weight": "Bolder", "size": "Medium" },
-    { "type": "TextBlock", "text": "Hi @{items('Apply_to_each')?['name']},", "wrap": true },
-    { "type": "TextBlock", "text": "Project: @{items('Apply_to_each')?['csam']}", "wrap": true },
-    { "type": "TextBlock", "text": "Current deadline: @{formatDateTime(items('Apply_to_each')?['deadline'], 'dd/MM/yyyy')}", "wrap": true },
-    { "type": "Input.Date", "id": "newDeadline", "label": "New deadline (leave blank to keep current)" }
-  ],
-  "actions": [
-    {
-      "type": "Action.Submit",
-      "title": "Submit",
-      "data": { "rowId": "@{items('Apply_to_each')?['id']}" }
-    }
-  ]
-}
+⚙️ FLOW 2 — Deadline Extension Handler
+Chapter B1 — Create it
 
+Create → Automated cloud flow → name: Deadline Extension Handler
 
-days remaining update: if(empty(item()?['deadline']), -999, div(sub(ticks(formatDateTime(item()?['deadline'], 'yyyy-MM-dd')), ticks(formatDateTime(utcNow(), 'yyyy-MM-dd'))), 864000000000))
+In the trigger search box, find: "When someone responds to an adaptive card" (Microsoft Teams) → Create
+
+(If your tenant doesn't show this trigger, tell me — there's a fallback using an HTTP request trigger, but let's try this first.)
+
+Chapter B2 — Grab the values
+
+Add a Compose → rename it SubmittedDeadline → fx (no @):
+
+triggerOutputs()?['body']?['data']?['newDeadline']
+
+Add another Compose → rename it SubmittedRowId → fx (no @):
+
+triggerOutputs()?['body']?['data']?['rowId']
+Chapter B3 — Only proceed if they typed a date
+
+Add a Condition:
+
+Left: Dynamic content → Outputs of SubmittedDeadline
+Middle: is not equal to
+Right: leave empty
+Chapter B4 — Update the deadline
+
+Inside If yes:
+
+Add an action → Update a row (Excel Online Business)
+Same Location / Library / File / Table
+Key Column: id
+Key Value: Dynamic content → Outputs of SubmittedRowId
+deadline field → Dynamic content → Outputs of SubmittedDeadline
+Leave other fields blank
+Chapter B5 — Save & test
+
+Save both flows. Run Flow 1 manually → you get a card → type a new date → hit Submit → within a few seconds, check Excel. The deadline should update. 🎉

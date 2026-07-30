@@ -1,18 +1,11 @@
 {
-  "type": "AdaptiveCard",
-  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-  "version": "1.4",
-  "body": [
-    { "type": "TextBlock", "text": "⚠️ Deadline approaching", "weight": "Bolder", "size": "Medium" },
-    { "type": "TextBlock", "text": "Hi @{items('Apply_to_each')?['name']},", "wrap": true },
-    { "type": "TextBlock", "text": "Project: @{items('Apply_to_each')?['csam']}", "wrap": true },
-    { "type": "TextBlock", "text": "Current deadline: @{formatDateTime(items('Apply_to_each')?['deadline'], 'dd/MM/yyyy')}", "wrap": true },
-    { "type": "Input.Date", "id": "newDeadline", "label": "New deadline (leave blank to keep current)" }
-  ],
-  "actions": [
-    {
-      "type": "Action.Submit",
-      "title": "Submit"
+  "type": "object",
+  "properties": {
+    "newDeadline": {
+      "type": "string"
+    },
+    "rowId": {
+      "type": "string"
     }
-  ]
+  }
 }

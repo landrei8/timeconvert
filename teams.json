@@ -11,13 +11,8 @@
   ],
   "actions": [
     {
-      "type": "Action.Http",
-      "method": "POST",
-      "url": "PASTE_YOUR_HTTP_URL_HERE",
-      "headers": [
-        { "name": "Content-Type", "value": "application/json" }
-      ],
-      "body": "{\"newDeadline\": \"{{newDeadline.value}}\", \"rowId\": \"@{items('Apply_to_each')?['id']}\"}"
+      "type": "Action.Submit",
+      "title": "Submit"
     }
   ]
 }

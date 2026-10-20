@@ -878,7 +878,7 @@ list.addEventListener('click',e=>{ const li=e.target.closest('li[data-i]'); if(l
 /* ---------- footer: view counter + load time ---------- */
 // Each browser session counts once; reloads only read the total. Requests go to `${COUNTER_URL}/hit|get/${COUNTER_KEY}`.
 // After deploying counter-worker/ (see its README), set COUNTER_URL to your Worker's address and COUNTER_KEY to 'views'.
-const COUNTER_URL = 'https://abacus.jasoncameron.dev', COUNTER_KEY = 'landrei-timeconvert/views';
+const COUNTER_URL = 'https://timeconvert-counter.spam-ndy83.workers.dev/', COUNTER_KEY = 'views';
 (function(){
   let counted = false; try { counted = sessionStorage.getItem('tz-counted')==='1'; } catch(e){}
   fetch(`${COUNTER_URL}/${counted?'get':'hit'}/${COUNTER_KEY}`, {cache:'no-store'})

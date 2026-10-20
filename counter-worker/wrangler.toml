@@ -1,0 +1,13 @@
+# Only needed if you deploy from the command line (Option B in README.md).
+name = "timeconvert-counter"
+main = "worker.js"
+compatibility_date = "2025-06-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://YOUR-USERNAME.github.io,http://localhost:8765"
+ALLOWED_KEYS = "views"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "timeconvert-counter"
+database_id = "PASTE-THE-DATABASE-ID-HERE"

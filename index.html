@@ -15,7 +15,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.04), 0 18px 50px rgba(0,0,0,.07);
   --pop:0 10px 40px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.06);
   --lens-border:rgba(255,255,255,.8); --lens-fill:rgba(255,255,255,.06);
-  --cityw:290px; --cellw:34px;
+  --cityw:340px; --cellw:34px;
   color-scheme:light; box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -91,7 +91,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .date-btn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;cursor:pointer}
 .seg{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--field);border-radius:9px;padding:2px;height:32px}
 .seg button{position:relative;z-index:1;padding:0 12px;font-size:13px;font-weight:500;border-radius:7px}
-.seg .thumb{position:absolute;top:2px;bottom:2px;left:2px;width:calc(50% - 2px);background:var(--thumb);border-radius:7px;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04);transition:transform .3s cubic-bezier(.34,1.3,.64,1)}
+.seg .thumb{position:absolute;top:2px;bottom:2px;left:2px;width:calc(50% - 2px);background:var(--thumb);border-radius:7px;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
+.ui-ready .seg .thumb{transition:transform .3s cubic-bezier(.34,1.3,.64,1)}
 .seg[data-v="24"] .thumb{transform:translateX(100%)}
 .seg3{grid-template-columns:1fr 1fr 1fr}
 .seg3 button{padding:0 9px;display:grid;place-items:center;color:var(--muted)}
@@ -109,11 +110,6 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
 .hero h1 .ap{font-size:.3em;letter-spacing:-.01em;margin-left:.18em;font-weight:500;color:var(--muted)}
 .hero .sub{margin:14px 0 0;font-size:clamp(17px,2.2vw,22px);color:var(--muted);letter-spacing:-.015em}
 .side{display:flex;align-items:center;gap:14px;padding-bottom:6px}
-.overlap{max-width:340px;text-align:right}
-.overlap p{margin:0;font-size:15px;color:var(--muted)}
-.overlap button{display:block;margin-left:auto;margin-top:2px;font-size:17px;font-weight:600;letter-spacing:-.01em;color:var(--text);font-variant-numeric:tabular-nums}
-.overlap button:hover{color:var(--accent)}
-.overlap button[disabled]{cursor:default;color:var(--muted);font-weight:500}
 .pill{background:var(--accent);color:#fff;font-weight:500;font-size:15px;height:36px;padding:0 20px;border-radius:999px;flex:none}
 .pill[hidden]{display:none}
 .hero{--text:#fff;--muted:rgba(255,255,255,.8);--accent:rgba(255,255,255,.75);color:var(--text);text-shadow:0 1px 18px rgba(0,0,0,.14)}
@@ -126,17 +122,16 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
 .scroller::-webkit-scrollbar{display:none}
 .grid{position:relative;min-width:calc(var(--cityw) + 24 * var(--cellw) + 28px);outline:none;padding-bottom:10px;user-select:none;-webkit-user-select:none}
 .grid:focus-visible{box-shadow:inset 0 0 0 2px var(--accent);border-radius:28px 28px 0 0}
-.ruler,.row{display:grid;grid-template-columns:var(--cityw) 1fr}
-.ruler{height:58px}
-.lead,.city{position:sticky;left:0;z-index:3;background:var(--card)}
-.lead{display:flex;align-items:flex-end;gap:7px;padding:0 0 12px 26px;font-size:12px;color:var(--muted)}
-.lead i{width:14px;height:4px;border-radius:2px;background:var(--green);display:inline-block;margin-bottom:5px}
-.track{position:relative;margin:0 24px 0 4px}
-.band{position:absolute;bottom:12px;height:4px;border-radius:2px;background:var(--green)}
+.row{display:grid;grid-template-columns:var(--cityw) 1fr}
+.ruler{height:48px}
 .row{height:80px;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
 .row.lift{position:relative;z-index:6;transition:none}
 .row.lift .city{box-shadow:0 10px 30px rgba(0,0,0,.18);border-radius:14px}
-.city{display:flex;align-items:center;gap:14px;padding:0 14px 0 26px;min-width:0}
+.city{position:sticky;left:0;z-index:3;background:var(--card);display:flex;align-items:center;gap:14px;padding:0 38px 0 26px;min-width:0;cursor:pointer;outline:none}
+.city::before{content:"";position:absolute;inset:6px 4px 6px 8px;border-radius:14px;background:var(--field);opacity:0;transition:opacity .15s;pointer-events:none}
+.city:hover::before,.city:focus-visible::before,.city.open::before{opacity:1}
+.city:focus-visible{box-shadow:inset 0 0 0 2px var(--accent);border-radius:14px}
+.city>*{position:relative}
 .face{width:40px;height:40px;flex:none;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.12))}
 .meta{flex:1;min-width:0}
 .name{font-size:17px;font-weight:600;letter-spacing:-.015em;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
@@ -162,7 +157,7 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
 .cut{position:absolute;top:0;bottom:0;width:4px;margin-left:-2px;background:var(--card)}
 
 /* The glass lens */
-.lens{position:absolute;top:44px;bottom:10px;left:0;width:0;z-index:2;border-radius:16px;cursor:grab;touch-action:none;
+.lens{position:absolute;top:34px;bottom:10px;left:0;width:0;z-index:2;border-radius:16px;cursor:grab;touch-action:none;
   background:var(--lens-fill);
   -webkit-backdrop-filter:saturate(1.6) brightness(1.04) contrast(1.05);backdrop-filter:saturate(1.6) brightness(1.04) contrast(1.05);
   border:1px solid var(--lens-border);
@@ -172,19 +167,41 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
 .dragging .lens{transition:none;transform:scale(1.03)}
 .chip{position:absolute;top:-34px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--accent);color:#fff;font-size:13px;font-weight:600;
   padding:4px 10px;border-radius:999px;font-variant-numeric:tabular-nums;box-shadow:0 4px 12px rgba(0,113,227,.35);letter-spacing:-.01em}
-.nowline{position:absolute;top:48px;bottom:14px;width:2px;margin-left:-1px;background:var(--red);border-radius:1px;pointer-events:none;z-index:1}
+.nowline{position:absolute;top:38px;bottom:14px;width:2px;margin-left:-1px;background:var(--red);border-radius:1px;pointer-events:none;z-index:1}
 .nowline::before{content:"";position:absolute;top:-4px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--red)}
 .nowline[hidden]{display:none}
 
-/* Edit mode */
-.del,.grip,.mkhome{display:none;flex:none}
-.editing .del,.editing .grip,.editing .mkhome{display:grid}
-.del{width:22px;height:22px;border-radius:50%;background:var(--red);place-items:center}
-.del span{width:10px;height:2px;border-radius:1px;background:#fff}
-.mkhome{width:28px;height:28px;place-items:center;color:var(--accent);border-radius:8px}
-.grip{width:28px;height:36px;place-items:center;color:var(--muted);cursor:grab;touch-action:none}
-.del:disabled,.mkhome:disabled{opacity:.3;cursor:default}
-.editing .clock{display:none}
+/* Per-city controls: drag handle and "more" button appear on hover; click a city for its menu */
+.grip{position:absolute!important;left:2px;top:50%;transform:translateY(-50%);width:22px;height:36px;display:grid;place-items:center;color:var(--muted);
+  cursor:grab;touch-action:none;opacity:0;transition:opacity .15s}
+.more{position:absolute!important;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  color:var(--muted);opacity:.45;transition:opacity .15s,background .15s}
+.city:hover .grip,.city:focus-within .grip,.city:hover .more,.city.open .more{opacity:1}
+.more:hover{background:var(--field);color:var(--text)}
+.only1 .grip{display:none}
+
+/* City menu: popover on desktop, bottom sheet on phones */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,0);transition:background .2s}
+.scrim[hidden]{display:none}
+.menu{position:fixed;z-index:41;width:320px;max-width:calc(100vw - 24px);background:var(--card);color:var(--text);border-radius:18px;box-shadow:var(--pop);padding:16px;
+  opacity:0;transform:translateY(-6px) scale(.98);transition:opacity .16s ease,transform .16s ease}
+.menu.show{opacity:1;transform:none}
+.menu[hidden]{display:none}
+.menu .grab{display:none}
+.m-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.m-head>div{flex:1;min-width:0}
+.m-title{font-size:17px;font-weight:600;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-sub{font-size:13px;color:var(--muted);margin-top:1px}
+.m-x{width:30px;height:30px;border-radius:50%;background:var(--field);display:grid;place-items:center;color:var(--muted);flex:none}
+.m-x:hover{color:var(--text)}
+.m-label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin:0 0 6px 2px}
+.menu .field{max-width:none;margin-bottom:12px}
+.m-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.m-acts button{display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border-radius:12px;background:var(--field);font-size:14px;font-weight:500;text-align:left}
+.m-acts button svg{flex:none;color:var(--accent)}
+.m-acts button:hover:not(:disabled){filter:brightness(.96)}
+.m-acts button:disabled{opacity:.4;cursor:default}
+.m-acts .danger{color:var(--red)}.m-acts .danger svg{color:var(--red)}
 
 /* Add */
 .add{position:relative;padding:16px 26px 20px;border-top:1px solid var(--hair)}
@@ -207,17 +224,52 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
 .foot .sep{opacity:.5}
 
 @media (max-width:720px){
-  :root{--cityw:176px;--cellw:38px}
-  main{padding:32px 16px 56px}
-  .bar-in{padding:10px 16px}
+  :root{--cellw:42px}
+  main{padding:24px 12px 48px}
+  /* Bar: brand + theme on the first line, date + 12/24h on the second */
+  .bar-in{display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand theme" "date fmt";gap:8px 10px;padding:8px 12px;min-height:0}
+  .controls{display:contents}
+  .brand{grid-area:brand;align-self:center}
+  #themeSeg{grid-area:theme}
+  .datepick{grid-area:date}.date-btn{flex:1;min-width:0}
+  #seg{grid-area:fmt}
+  .hero{margin-bottom:24px;gap:12px}
+  .hero h1{font-size:clamp(56px,19vw,84px)}
+  .side{padding-bottom:0}
   .card{border-radius:22px}.scroller{border-radius:22px 22px 0 0}
-  .lead{padding-left:16px}
-  .city{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"del name grip" "del time grip";column-gap:10px;row-gap:1px;align-content:center;padding:0 8px 0 16px}
-  .del{grid-area:del}.fw{display:none}.meta{grid-area:name}.clock{grid-area:time;text-align:left;display:flex;gap:6px;align-items:baseline}
-  .grip{grid-area:grip}.mkhome{display:none!important}
-  .name{font-size:15px}.csub{display:none}.clock .t{font-size:15px}.clock .t small{font-size:11px}.clock .d{font-size:11px;white-space:nowrap;display:none}.clock .d.shift{display:block}
-  .editing .clock{display:none}
-  .side{width:100%;justify-content:space-between}.overlap{text-align:left}.overlap button{margin-left:0}
+  /* Each city: a full-width header that stays put, with its timeline scrolling underneath */
+  .grid{min-width:calc(24 * var(--cellw) + 20px)}
+  .ruler{height:42px}
+  .row{display:block;height:auto}
+  .city{width:var(--sw,calc(100vw - 24px));height:50px;gap:10px;padding:0 44px 0 14px}
+  .city::before{inset:4px 6px}
+  .face{width:30px;height:30px}
+  .name{font-size:16px}
+  .csub{font-size:12px}
+  .clock{display:flex;flex-direction:column;align-items:flex-end}
+  .clock .t{font-size:18px}.clock .t small{font-size:11px}
+  .clock .d{font-size:11px}
+  .grip{display:none}
+  .more{opacity:.7;right:8px}
+  .strip{height:50px;margin:0 10px 10px}
+  .lab{font-size:12px}
+  .lens{top:28px}
+  .nowline{top:32px}
+  .add{padding:14px 14px 16px}
+  .field{max-width:none}
+  .results{left:14px;width:calc(100% - 28px);top:58px}
+  .hint{margin:16px 4px 0}
+  /* Menu becomes a bottom sheet */
+  .menu{left:0!important;right:0;top:auto!important;bottom:0;width:auto;max-width:none;border-radius:22px 22px 0 0;
+    padding:10px 16px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+  .menu.show{transform:none}
+  .menu .grab{display:block;width:36px;height:5px;border-radius:3px;background:var(--hair);margin:0 auto 12px}
+  .scrim.show{background:rgba(0,0,0,.32)}
+  .m-acts button{height:50px;font-size:15px}
+}
+@media (max-width:360px){
+  .bar-in{grid-template-areas:"brand theme" "date date" "fmt fmt"}
+  #seg{justify-self:start}
 }
 @media (prefers-reduced-motion:reduce){
   .ready .lens,.seg .thumb,.row,.sky,.starfield,.glow,.sun,.flares,.flares i,.moon{transition:none}
@@ -251,7 +303,6 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
         <button role="radio" data-th="auto" aria-label="Automatic, matches your device" title="Auto"><svg viewBox="0 0 24 24" width="15" height="15"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor"/></svg></button>
         <span class="thumb"></span>
       </div>
-      <button class="text-btn" id="editBtn">Edit</button>
     </div>
   </div>
 </header>
@@ -263,10 +314,6 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
       <p class="sub" id="heroSub"></p>
     </div>
     <div class="side">
-      <div class="overlap">
-        <p id="ovLead">Everyone is between 9 and 5</p>
-        <button id="ovBtn"></button>
-      </div>
       <button class="pill" id="nowBtn" hidden>Now</button>
     </div>
   </section>
@@ -274,7 +321,7 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
   <section class="card">
     <div class="scroller" id="scroller">
       <div class="grid" id="grid" tabindex="0" aria-label="Your cities across the day. Left and right arrow keys move the selected time by an hour, with Shift by 15 minutes.">
-        <div class="ruler"><div class="lead"><i></i>Shared working hours</div><div class="track" id="track"></div></div>
+        <div class="ruler"></div>
         <div id="rows"></div>
         <div class="nowline" id="nowline" aria-hidden="true" hidden></div>
         <div class="lens" id="lens" aria-hidden="true"><div class="chip" id="chip"></div></div>
@@ -288,7 +335,7 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
       <ul class="results" id="results" role="listbox" hidden></ul>
     </div>
   </section>
-  <p class="hint">Drag the glass to move through the day, or tap any hour. Search any city, country, time zone abbreviation (EST, CET, IST…) or UTC offset (UTC+5:30, GMT-3). The colors follow the real sun in each city, and the sky behind the page follows your home city.</p>
+  <p class="hint">Drag the glass to move through the day, or tap any hour. Tap a city to rename it, make it home, reorder or remove it. Search any city, country, time zone abbreviation (EST, CET, IST…) or UTC offset (UTC+5:30, GMT-3). The colors follow the real sun in each city, and the sky behind the page follows your home city.</p>
   <footer class="foot">
     <span id="views"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span id="viewCount">– views</span></span>
     <span class="sep" aria-hidden="true">·</span>
@@ -296,12 +343,30 @@ main{max-width:1240px;margin:0 auto;padding:56px 28px 80px}
   </footer>
 </main>
 
+<div class="scrim" id="scrim" hidden></div>
+<div class="menu" id="menu" role="dialog" aria-modal="true" aria-labelledby="mTitle" hidden>
+  <div class="grab" aria-hidden="true"></div>
+  <div class="m-head">
+    <div><div class="m-title" id="mTitle"></div><div class="m-sub" id="mSub"></div></div>
+    <button class="m-x" id="mClose" aria-label="Close"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <label class="m-label" for="mName">Display name</label>
+  <div class="field"><input id="mName" type="text" maxlength="40" autocomplete="off" spellcheck="false"></div>
+  <div class="m-acts">
+    <button data-m="home"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3.2 2.8 11a1 1 0 0 0 1.3 1.5l.9-.8V20a1 1 0 0 0 1 1h4.5v-5.5h3V21H18a1 1 0 0 0 1-1v-8.3l.9.8A1 1 0 0 0 21.2 11Z"/></svg>Make home</button>
+    <button data-m="del" class="danger"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Remove</button>
+    <button data-m="up"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Move up</button>
+    <button data-m="down"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Move down</button>
+  </div>
+</div>
+
 <script src="cities.js"></script>
 <script>
 (function(){
 const H = 3600000, MIN = 60000, KEY = 'tz-test-v1', MAX = 12, rad = Math.PI/180;
 const HOUSE = s => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="currentColor"><path d="M12 3.2 2.8 11a1 1 0 0 0 1.3 1.5l.9-.8V20a1 1 0 0 0 1 1h4.5v-5.5h3V21H18a1 1 0 0 0 1-1v-8.3l.9.8A1 1 0 0 0 21.2 11Z"/></svg>`;
-const GRIP = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8h14M5 12h14M5 16h14"/></svg>';
+const GRIP = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+const MORE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>';
 /* Zone validation, cached. Newer zone names fall back to the legacy alias older browsers know. */
 const LEGACY = {'Europe/Kyiv':'Europe/Kiev','Asia/Kolkata':'Asia/Calcutta','Asia/Ho_Chi_Minh':'Asia/Saigon','Asia/Yangon':'Asia/Rangoon',
   'Asia/Kathmandu':'Asia/Katmandu','America/Nuuk':'America/Godthab','Pacific/Kanton':'Pacific/Enderbury','America/Ciudad_Juarez':'America/Denver'};
@@ -430,7 +495,8 @@ addEventListener('resize', ()=>{ if (lastSky) paintSky(...lastSky); });
 
 /* ---------- state ---------- */
 const hc = new Intl.DateTimeFormat(undefined,{hour:'numeric'}).resolvedOptions().hourCycle;
-const S = {cities:[], fmt:(hc==='h23'||hc==='h24')?'24':'12', theme:'auto', date:null, live:true, t:0, editing:false};
+const S = {cities:[], fmt:(hc==='h23'||hc==='h24')?'24':'12', theme:'auto', date:null, live:true, t:0};
+const label = c => c.label || c.name;
 const home = () => S.cities[0];
 const mid = () => midnight(S.date.y,S.date.m,S.date.d,home().tz);
 const selInstant = () => mid() + S.t*MIN;
@@ -445,7 +511,7 @@ function rel(tz,t){
   const a=Math.abs(diff), h=Math.floor(a/60), m=a%60;
   return `${m?h+':'+pad(m):h} hr ${diff>0?'ahead':'behind'}`;
 }
-const enrich = c => { const k = CITIES.find(x=>x.tz===c.tz && x.name===c.name) || CITIES.find(x=>x.tz===c.tz); return {name:c.name, country:c.country ?? (k?k.country:''), tz:c.tz, lat:c.lat ?? (k&&k.name===c.name?k.lat:null), lon:c.lon ?? (k&&k.name===c.name?k.lon:null)}; };
+const enrich = c => { const k = CITIES.find(x=>x.tz===c.tz && x.name===c.name) || CITIES.find(x=>x.tz===c.tz); return {name:c.name, label:(typeof c.label==="string" && c.label.trim()) ? c.label.trim().slice(0,40) : undefined, country:c.country ?? (k?k.country:''), tz:c.tz, lat:c.lat ?? (k&&k.name===c.name?k.lat:null), lon:c.lon ?? (k&&k.name===c.name?k.lon:null)}; };
 const zoneCity = tz => tz.split('/').pop().replace(/_/g,' ');
 const cityFromTz = tz => CITIES.find(c=>c.tz===tz && c.nn===norm(zoneCity(tz))) || CITY_BY_CANON[canon(tz)] || {name:zoneCity(tz), country:'', tz, lat:null, lon:null};
 function defaults(){
@@ -464,12 +530,15 @@ function getCookie(k){
 function setCookie(k,v){ document.cookie = `${k}=${encodeURIComponent(v)}; Max-Age=${COOKIE_AGE}; Path=/; SameSite=Lax${location.protocol==='https:'?'; Secure':''}`; }
 function pack(){
   return {v:1, f:S.fmt, th:S.theme, c:S.cities.map(c=>{
-    if (CITIES.some(x=>x.name===c.name && x.tz===c.tz)) return [c.name,c.tz];
-    const r=[c.name,c.tz,c.country||'']; if (c.lat!=null) r.push(+c.lat.toFixed(2), +c.lon.toFixed(2)); return r; })};
+    const known = CITIES.some(x=>x.name===c.name && x.tz===c.tz);
+    if (known && !c.label) return [c.name,c.tz];
+    const r = known ? [c.name,c.tz,null,null,null] : [c.name,c.tz,c.country||'',c.lat!=null?+c.lat.toFixed(2):null,c.lon!=null?+c.lon.toFixed(2):null];
+    if (c.label) r.push(c.label); else while (r[r.length-1]==null) r.pop();
+    return r; })};
 }
 function unpack(d){
   if (!d || typeof d!=='object') return null;
-  if (Array.isArray(d.c)) return {fmt:d.f, theme:d.th, cities:d.c.filter(Array.isArray).map(([name,tz,country,lat,lon])=>({name,tz,country,lat,lon}))};
+  if (Array.isArray(d.c)) return {fmt:d.f, theme:d.th, cities:d.c.filter(Array.isArray).map(([name,tz,country,lat,lon,label])=>({name,tz,country,lat,lon,label}))};
   if (Array.isArray(d.cities)) return d;   // older localStorage format
   return null;
 }
@@ -492,19 +561,10 @@ function save(){
   try { localStorage.setItem(KEY, v); } catch(e){}
 }
 
-/* ---------- overlap (9:00–17:00 local, 15-min slots) ---------- */
-function overlaps(m){
-  const ok = [];
-  for (let k=0;k<96;k++){ const t=m+k*15*MIN; ok.push(S.cities.every(c=>{ const p=parts(c.tz,t); return p.h>=9 && p.h<17; })); }
-  const out=[]; let s=-1;
-  for (let k=0;k<=96;k++){ if (k<96&&ok[k]){ if(s<0) s=k; } else if (s>=0){ out.push([s,k]); s=-1; } }
-  return out;
-}
-
 /* ---------- render ---------- */
 const $ = id => document.getElementById(id);
-const rowsEl=$('rows'), grid=$('grid'), scroller=$('scroller'), lens=$('lens'), chip=$('chip'), nowEl=$('nowline'), track=$('track');
-let ranges = [], shownKey = '';
+const rowsEl=$('rows'), grid=$('grid'), scroller=$('scroller'), lens=$('lens'), chip=$('chip'), nowEl=$("nowline");
+let shownKey = "";
 
 function face(c,t,dark){
   const p=parts(c.tz,t), day=elev(c,t)>-3;
@@ -534,19 +594,17 @@ function renderRows(){
       labs += `<div class="lab ${tone}">${inner}</div>`;
     }
     return `<div class="row" data-ci="${ci}">
-      <div class="city">
-        <button class="del" data-act="del" aria-label="Remove ${esc(c.name)}" ${S.cities.length<2?'disabled':''}><span></span></button>
+      <div class="city" tabindex="0" role="button" aria-haspopup="dialog" aria-label="${esc(label(c))}, options">
+        <span class="grip" data-act="grip" title="Drag to reorder" aria-hidden="true">${GRIP}</span>
         <span class="fw"></span>
-        <div class="meta"><div class="name">${ci===0?HOUSE(14):''}<span>${esc(c.name)}</span></div><div class="csub"></div></div>
+        <div class="meta"><div class="name">${ci===0?HOUSE(14):''}<span>${esc(label(c))}</span></div><div class="csub"></div></div>
         <div class="clock"><div class="t"></div><div class="d"></div></div>
-        <button class="mkhome" data-act="home" aria-label="Make ${esc(c.name)} home" ${ci===0?'disabled':''}>${HOUSE(18)}</button>
-        <button class="grip" data-act="grip" aria-label="Drag to reorder ${esc(c.name)}">${GRIP}</button>
+        <span class="more" aria-hidden="true">${MORE}</span>
       </div>
       <div class="strip" style="background:linear-gradient(90deg,${stops.join(',')})">${cuts}<div class="labels">${labs}</div></div>
     </div>`;
   }).join('');
-  ranges = overlaps(m);
-  track.innerHTML = ranges.map(([a,b])=>`<div class="band" style="left:${a/96*100}%;width:${(b-a)/96*100}%"></div>`).join('');
+  grid.classList.toggle("only1", S.cities.length<2);
   shownKey = dateKey(S.date);
   renderTime();
 }
@@ -563,7 +621,7 @@ function renderTime(){
   });
   const tp = timeParts(h.tz,st);
   $('heroTime').innerHTML = tp.main + (tp.ap?`<span class="ap">${tp.ap}</span>`:'');
-  $('heroSub').textContent = `${longDate(h.tz,st)} in ${h.name}`;
+  $("heroSub").textContent = `${longDate(h.tz,st)} in ${label(h)}`;
   chip.textContent = fmtTime(h.tz,st);
   paintSky(h,st);
   $('nowBtn').hidden = S.live;
@@ -573,14 +631,6 @@ function renderTime(){
   $('dateInput').value = dateKey(S.date);
   const seg=$('seg'); seg.dataset.v=S.fmt; seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-checked', b.dataset.f===S.fmt));
   const ts=$('themeSeg'); ts.dataset.v=S.theme; ts.querySelectorAll('button').forEach(b=>b.setAttribute('aria-checked', b.dataset.th===S.theme));
-  $('editBtn').textContent = S.editing ? 'Done' : 'Edit';
-  grid.classList.toggle('editing', S.editing);
-  const ob=$('ovBtn'), m=mid();
-  if (S.cities.length<2){ $('ovLead').textContent='Add a city to find shared'; ob.textContent='working hours'; ob.disabled=true; }
-  else if (!ranges.length){ $('ovLead').textContent='Shared 9-to-5 hours'; ob.textContent='None on this day'; ob.disabled=true; }
-  else { const [a,b]=ranges.reduce((x,y)=>(y[1]-y[0]>x[1]-x[0]?y:x));
-    $('ovLead').textContent = 'Everyone is between 9 and 5';
-    ob.textContent = `${fmtTime(h.tz,m+a*15*MIN)} – ${fmtTime(h.tz,m+b*15*MIN)}`; ob.disabled=false; ob.dataset.t=a*15; }
   place();
 }
 
@@ -594,9 +644,10 @@ function place(){
   const f = (Date.now()-mid())/MIN;
   if (dayDiff(S.date,homeToday())===0 && f>=0 && f<1440){ nowEl.style.left=(x0+f/1440*w)+'px'; nowEl.hidden=false; } else nowEl.hidden=true;
 }
+const stacked = () => matchMedia('(max-width:720px)').matches;   // phone layout: city header sits above its timeline
 function scrollToSel(center){
   const sr=stripRect(), city=rowsEl.querySelector('.city'); if (!sr||!city) return;
-  const gr=grid.getBoundingClientRect(), L=sr.left-gr.left+S.t/1440*sr.width, W=sr.width/24, cw=city.offsetWidth, vw=scroller.clientWidth;
+  const gr=grid.getBoundingClientRect(), L=sr.left-gr.left+S.t/1440*sr.width, W=sr.width/24, cw=stacked() ? 0 : city.offsetWidth, vw=scroller.clientWidth;
   if (center) scroller.scrollLeft = L - cw - (vw-cw)/2 + W/2;
   else if (L < scroller.scrollLeft+cw+8) scroller.scrollLeft = L-cw-12;
   else if (L+W > scroller.scrollLeft+vw-8) scroller.scrollLeft = L+W-vw+28;
@@ -617,7 +668,7 @@ function setOrder(arr){
 }
 function addCity(c){ if (S.cities.length>=MAX) return; S.cities.push(enrich(c)); save(); renderRows(); }
 
-/* pointer: scrub with the lens, tap an hour, reorder in edit mode */
+/* pointer: scrub with the lens, tap an hour, drag the handle to reorder */
 let drag=null, re=null;
 const pointerMin = x => { const sr=stripRect(); return (x-sr.left)/sr.width*1440; };
 grid.addEventListener('pointerdown', e=>{
@@ -648,19 +699,82 @@ grid.addEventListener('pointermove', e=>{
   if (drag.scrub && drag.moved){ grid.classList.add('dragging'); setT(Math.round((pointerMin(e.clientX)-drag.grab)/15)*15); scrollToSel(false); }
 });
 function endPointer(e, cancel){
-  if (re){ const {idx,to}=re; re=null; if (!cancel && to!==idx){ const a=[...S.cities]; const [c]=a.splice(idx,1); a.splice(to,0,c); setOrder(a); } else renderRows(); return; }
+  if (re){ const {idx,to}=re; re=null; if (!cancel) suppressClick=true; if (!cancel && to!==idx){ const a=[...S.cities]; const [c]=a.splice(idx,1); a.splice(to,0,c); setOrder(a); } else renderRows(); return; }
   if (!drag) return;
   if (!cancel && !drag.moved && !drag.onLens){ setT(Math.floor(pointerMin(e.clientX)/60)*60); scrollToSel(false); }
   grid.classList.remove('dragging'); drag=null;
 }
 grid.addEventListener('pointerup', e=>endPointer(e,false));
 grid.addEventListener('pointercancel', e=>endPointer(e,true));
+let suppressClick = false;
 rowsEl.addEventListener('click', e=>{
-  const b=e.target.closest('[data-act]'); if (!b||b.disabled) return;
-  const ci=+b.closest('.row').dataset.ci;
-  if (b.dataset.act==='del' && S.cities.length>1){ const a=[...S.cities]; a.splice(ci,1); setOrder(a); }
-  if (b.dataset.act==='home'){ const a=[...S.cities]; const [c]=a.splice(ci,1); a.unshift(c); setOrder(a); }
+  if (suppressClick){ suppressClick=false; return; }
+  const city=e.target.closest('.city'); if (city) openMenu(+city.closest('.row').dataset.ci, city);
 });
+rowsEl.addEventListener('keydown', e=>{
+  const city=e.target.closest('.city'); if (!city || (e.key!=='Enter' && e.key!==' ')) return;
+  e.preventDefault(); openMenu(+city.closest('.row').dataset.ci, city);
+});
+
+/* ---------- city menu (popover on desktop, bottom sheet on phones) ---------- */
+const menu=$('menu'), scrim=$('scrim'), mName=$('mName'), phone=matchMedia('(max-width:720px)');
+let menuCi=-1;
+function offLabelNow(tz){ const o=offset(tz,Date.now()), a=Math.abs(o); return `UTC${o<0?'−':'+'}${Math.floor(a/60)}${a%60?':'+pad(a%60):''}`; }
+function fillMenu(){
+  const c=S.cities[menuCi];
+  $('mTitle').textContent = label(c);
+  $('mSub').textContent = [c.label && c.label!==c.name ? c.name : '', c.country, `${c.tz.replace(/_/g,' ')} · ${offLabelNow(c.tz)}`].filter(Boolean).join(' · ');
+  mName.placeholder = c.name;
+  menu.querySelector('[data-m="home"]').disabled = menuCi===0;
+  menu.querySelector('[data-m="up"]').disabled = menuCi===0;
+  menu.querySelector('[data-m="down"]').disabled = menuCi===S.cities.length-1;
+  menu.querySelector('[data-m="del"]').disabled = S.cities.length<2;
+  rowsEl.querySelectorAll('.city').forEach((el,i)=>el.classList.toggle('open', i===menuCi));
+}
+function placeMenu(anchor){
+  if (phone.matches || !anchor) return;
+  const r=anchor.getBoundingClientRect(), mh=menu.offsetHeight, mw=menu.offsetWidth;
+  let top=r.bottom+6; if (top+mh > innerHeight-12) top=Math.max(12, r.top-mh-6);
+  menu.style.left = clamp(r.left+8, 12, innerWidth-mw-12)+'px'; menu.style.top = top+'px';
+}
+function openMenu(ci, anchor){
+  menuCi=ci; mName.value = S.cities[ci].label || '';
+  scrim.hidden=false; menu.hidden=false; fillMenu(); placeMenu(anchor);
+  requestAnimationFrame(()=>{ menu.classList.add('show'); scrim.classList.add('show'); });
+  (phone.matches ? $('mClose') : mName).focus({preventScroll:true});
+}
+function closeMenu(refocus){
+  if (menuCi<0) return;
+  const ci=menuCi; menuCi=-1;
+  menu.classList.remove('show'); scrim.classList.remove('show');
+  rowsEl.querySelectorAll('.city.open').forEach(el=>el.classList.remove('open'));
+  setTimeout(()=>{ if (menuCi<0){ menu.hidden=true; scrim.hidden=true; } }, 260);
+  if (refocus){ const el=rowsEl.querySelectorAll('.city')[ci]; if (el) el.focus({preventScroll:true}); }
+}
+function moveCity(from, to){
+  const a=[...S.cities]; const [c]=a.splice(from,1); a.splice(to,0,c); setOrder(a); return to;
+}
+mName.addEventListener('input', ()=>{
+  const c=S.cities[menuCi]; if (!c) return;
+  const v=mName.value.trim().slice(0,40); c.label = v && v!==c.name ? v : undefined;
+  const span=rowsEl.querySelectorAll('.row .name span')[menuCi]; if (span) span.textContent=label(c);
+  $('mTitle').textContent=label(c); if (menuCi===0) renderTime();
+  save();
+});
+mName.addEventListener('keydown', e=>{ if (e.key==='Enter'){ e.preventDefault(); closeMenu(true); } });
+menu.addEventListener('click', e=>{
+  const b=e.target.closest('[data-m]'); if (!b || b.disabled) return;
+  const act=b.dataset.m, ci=menuCi;
+  if (act==='home'){ moveCity(ci,0); closeMenu(false); }
+  else if (act==='up'){ menuCi=moveCity(ci,ci-1); fillMenu(); placeMenu(rowsEl.querySelectorAll('.city')[menuCi]); }
+  else if (act==='down'){ menuCi=moveCity(ci,ci+1); fillMenu(); placeMenu(rowsEl.querySelectorAll('.city')[menuCi]); }
+  else if (act==='del'){ const a=[...S.cities]; a.splice(ci,1); closeMenu(false); setOrder(a); }
+});
+$('mClose').onclick=()=>closeMenu(true);
+scrim.addEventListener('click', ()=>closeMenu(false));
+addEventListener('keydown', e=>{ if (e.key==='Escape' && menuCi>=0) closeMenu(true); });
+addEventListener('resize', ()=>{ if (menuCi>=0) placeMenu(rowsEl.querySelectorAll('.city')[menuCi]); });
+scroller.addEventListener('scroll', ()=>{ if (menuCi>=0 && !phone.matches) placeMenu(rowsEl.querySelectorAll('.city')[menuCi]); }, {passive:true});
 grid.addEventListener('keydown', e=>{
   if (e.target!==grid) return;
   const step = e.shiftKey?15:60;
@@ -675,9 +789,7 @@ const di=$('dateInput');
 di.addEventListener('click',()=>{ try{ di.showPicker(); }catch(e){} });
 di.addEventListener('change',()=>{ const [y,m,d]=di.value.split('-').map(Number); if(!y) return; if (S.live) syncLive(); S.date={y,m,d}; S.live=false; S.t=Math.round(S.t); renderRows(); });
 $('nowBtn').onclick=()=>{ S.live=true; renderRows(); scrollToSel(true); };
-$('ovBtn').onclick=e=>{ const t=+e.currentTarget.dataset.t; if (!isNaN(t)){ setT(t); scrollToSel(true); } };
 $('seg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; S.fmt=b.dataset.f; save(); renderRows(); });
-$('editBtn').onclick=()=>{ S.editing=!S.editing; renderTime(); };
 const hostTheme = document.documentElement.dataset.theme;
 function applyTheme(){
   const r=document.documentElement;
@@ -764,11 +876,12 @@ list.addEventListener('mousedown',e=>e.preventDefault());
 list.addEventListener('click',e=>{ const li=e.target.closest('li[data-i]'); if(li) pick(+li.dataset.i); });
 
 /* ---------- footer: view counter + load time ---------- */
-// Free hosted counter (abacus.jasoncameron.dev). Each browser session counts once; reloads only read the total.
-const COUNTER_URL = 'https://abacus.jasoncameron.dev', COUNTER_NS = 'landrei-timeconvert', COUNTER_KEY = 'views';
+// Each browser session counts once; reloads only read the total. Requests go to `${COUNTER_URL}/hit|get/${COUNTER_KEY}`.
+// After deploying counter-worker/ (see its README), set COUNTER_URL to your Worker's address and COUNTER_KEY to 'views'.
+const COUNTER_URL = 'https://abacus.jasoncameron.dev', COUNTER_KEY = 'landrei-timeconvert/views';
 (function(){
   let counted = false; try { counted = sessionStorage.getItem('tz-counted')==='1'; } catch(e){}
-  fetch(`${COUNTER_URL}/${counted?'get':'hit'}/${COUNTER_NS}/${COUNTER_KEY}`, {cache:'no-store'})
+  fetch(`${COUNTER_URL}/${counted?'get':'hit'}/${COUNTER_KEY}`, {cache:'no-store'})
     .then(r=>r.ok ? r.json() : Promise.reject(r.status))
     .then(d=>{ if (typeof d.value!=='number') return;
       try { sessionStorage.setItem('tz-counted','1'); } catch(e){}
@@ -783,9 +896,12 @@ addEventListener('load', ()=>setTimeout(()=>{
 }, 0));
 
 /* ---------- start ---------- */
-load(); applyTheme(); renderRows(); scrollToSel(true);
-requestAnimationFrame(()=>requestAnimationFrame(()=>grid.classList.add('ready')));
-addEventListener('resize', place);
+// On phones each city header is as wide as the visible card, so it stays put while the hours scroll.
+const fitHeaders = () => grid.style.setProperty('--sw', scroller.clientWidth+'px');
+load(); applyTheme(); fitHeaders(); renderRows(); scrollToSel(true);
+requestAnimationFrame(()=>requestAnimationFrame(()=>{ grid.classList.add('ready'); document.body.classList.add('ui-ready'); }));
+addEventListener('resize', ()=>{ fitHeaders(); place(); });
+phone.addEventListener('change', ()=>{ closeMenu(false); scrollToSel(true); });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderRows);
 setInterval(()=>{ if (S.live) renderTime(); else place(); }, 15000);
 })();
